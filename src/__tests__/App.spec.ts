@@ -47,7 +47,7 @@ describe('App wizard', () => {
     await next(w)
     expect(w.text()).toContain('Special pawns')
     await next(w)
-    expect(w.text()).toContain('Your game')
+    expect(w.text()).toContain('Additional setup:')
     expect(w.text()).toContain('traveler')
   })
   it('skips pawns without World', async () => {
@@ -55,7 +55,7 @@ describe('App wizard', () => {
     await w.findAll('button.plain')[EXPANSIONS.length]!.trigger('click')
     await next(w)
     await next(w)
-    expect(w.text()).toContain('Your game')
+    expect(w.text()).toContain('Additional setup:')
     expect(w.text()).not.toContain('Special pawns')
   })
   it('persists deselections', async () => {
@@ -119,7 +119,7 @@ describe('App wizard', () => {
   it('quick play jumps to the result', async () => {
     const w = mount(App)
     await w.find('button.quick').trigger('click')
-    expect(w.text()).toContain('Your game')
+    expect(w.text()).toContain('Additional setup:')
     expect(w.text()).toContain('Additional setup:')
   })
   it('restores the view from the URL', async () => {
@@ -132,7 +132,7 @@ describe('App wizard', () => {
     w.unmount()
     const again = mount(App)
     await new Promise((r) => setTimeout(r))
-    expect(again.text()).toContain('Your game')
+    expect(again.text()).toContain('Additional setup:')
     expect(again.findAll('.obj-list .label').map((l) => l.text())).toEqual(names)
     expect(location.hash).toBe(hash)
   })

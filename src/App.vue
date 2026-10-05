@@ -318,7 +318,6 @@ function restart() {
         </button>
       </div>
       <p v-else class="note">No expansion enabled — playing the base game.</p>
-      <h2>Your game</h2>
       <div class="result-items">
         <div class="obj-list">
           <button v-for="o in result.objectives" :key="o.id" class="plain" :class="{ marking: excluding }"
