@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, enableAutoUnmount } from '@vue/test-utils'
+import { afterEach } from 'vitest'
 import App from '../App.vue'
 import { EXPANSIONS, OBJECTIVES, CARS } from '../data'
 import { drawObjectives } from '../randomizer'
@@ -28,8 +29,11 @@ describe('data', () => {
 })
 
 describe('App wizard', () => {
+  enableAutoUnmount(afterEach)
   beforeEach(() => {
     const data = new Map<string, string>()
+    history.replaceState(null, '', '#/')
+    vi.stubGlobal('scrollTo', vi.fn())
     vi.stubGlobal('localStorage', {
       getItem: (k: string) => data.get(k) ?? null,
       setItem: (k: string, v: string) => void data.set(k, v),
@@ -117,5 +121,26 @@ describe('App wizard', () => {
     await w.find('button.quick').trigger('click')
     expect(w.text()).toContain('Your game')
     expect(w.text()).toContain('Additional setup:')
+  })
+  it('restores the view from the URL', async () => {
+    const w = mount(App)
+    await w.find('button.quick').trigger('click')
+    await new Promise((r) => setTimeout(r))
+    const hash = location.hash
+    expect(hash).toMatch(/^#\/result\//)
+    const names = w.findAll('.obj-list .label').map((l) => l.text())
+    w.unmount()
+    const again = mount(App)
+    await new Promise((r) => setTimeout(r))
+    expect(again.text()).toContain('Your game')
+    expect(again.findAll('.obj-list .label').map((l) => l.text())).toEqual(names)
+    expect(location.hash).toBe(hash)
+  })
+  it('scrolls to top on navigation', async () => {
+    const w = mount(App)
+    await next(w)
+    await new Promise((r) => setTimeout(r))
+    expect(window.scrollTo).toHaveBeenCalledWith(0, 0)
+    expect(location.hash).toMatch(/^#\/objectives\//)
   })
 })

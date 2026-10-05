@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import Tile from './components/Tile.vue'
 import SetupRules from './components/SetupRules.vue'
 import { CARS, EXPANSIONS, OBJECTIVES, PROMO, TRAINS, TRAVELERS, WORLD, type Objective, type Pawn } from './data'
@@ -17,6 +17,8 @@ const expansion = ref<(typeof EXPANSIONS)[number] | null>(null)
 const ratio = persistedRef<Ratio>('ratio', 1, (v): v is Ratio => v === 'free' || (Number.isInteger(v) && (v as number) >= 0 && (v as number) <= OBJECTIVE_COUNT))
 const disabledObjectives = persistedSet('disabledObjectives')
 const disabledPawns = persistedSet('disabledPawns')
+
+const ALL_PAWNS = [...TRAVELERS, ...TRAINS, ...CARS]
 
 const pawnGroups = [
   { type: 'traveler', title: 'Travelers', pawns: TRAVELERS },
@@ -104,6 +106,67 @@ function applyExclusions() {
   excluding.value = false
 }
 
+// --- URL <-> state (hash routing, so reloads and the back button restore the exact view)
+const currentHash = computed(() => {
+  const e = expansion.value?.id ?? 'none'
+  switch (step.value) {
+    case 'objectives':
+      return `#/objectives/${e}`
+    case 'pawns':
+      return `#/pawns/${e}`
+    case 'result': {
+      const r = result.value
+      if (!r) return '#/'
+      const pawns = r.pawns ? Object.values(r.pawns).map((p) => p.id).join(',') : '-'
+      return `#/result/${e}/${r.objectives.map((o) => o.id).join(',')}/${pawns}`
+    }
+    default:
+      return '#/'
+  }
+})
+
+function applyHash() {
+  const hash = location.hash || '#/'
+  if (hash === currentHash.value) return
+  const [, route, e, objs, pws] = hash.split('/')
+  const exp = e === 'none' ? null : EXPANSIONS.find((x) => x.id === e)
+  const valid = e === 'none' || !!exp
+  result.value = null
+  if (valid && (route === 'objectives' || route === 'pawns')) {
+    expansion.value = exp ?? null
+    step.value = route
+    return
+  }
+  if (valid && route === 'result' && objs) {
+    const objectives = objs.split(',').map((id) => OBJECTIVES.find((o) => o.id === id))
+    const pawnList = pws && pws !== '-' ? pws.split(',').map((id) => ALL_PAWNS.find((p) => p.id === id)) : []
+    if (objectives.every(Boolean) && pawnList.every(Boolean)) {
+      expansion.value = exp ?? null
+      result.value = {
+        objectives: objectives as Objective[],
+        pawns: pawnList.length ? Object.fromEntries((pawnList as Pawn[]).map((p) => [p.id.split('-')[0]!, p])) : null,
+      }
+      excluding.value = false
+      justExcluded.value = 0
+      step.value = 'result'
+      return
+    }
+  }
+  expansion.value = null
+  step.value = 'expansions'
+}
+
+onMounted(() => {
+  applyHash()
+  window.addEventListener('hashchange', applyHash)
+})
+onUnmounted(() => window.removeEventListener('hashchange', applyHash))
+
+watch(currentHash, (h) => {
+  if ((location.hash || '#/') !== h) location.hash = h
+  window.scrollTo(0, 0)
+})
+
 function resetAll() {
   if (!confirm('Reset everything? This re-enables every expansion, objective and pawn, and restores the default settings.')) return
   disabledExpansions.clear()
@@ -168,7 +231,7 @@ function restart() {
     </section>
 
     <!-- Step 2 -->
-    <section v-else-if="step === 'objectives'" class="panel">
+    <section v-else-if="step === 'objectives'" class="panel bleed">
       <div class="topbar">
         <div v-if="expansion" class="picked">
           <Tile :name="expansion.name" :image="expansion.image" aspect="2" selected />
@@ -208,7 +271,7 @@ function restart() {
     </section>
 
     <!-- Step 3 -->
-    <section v-else-if="step === 'pawns'" class="panel">
+    <section v-else-if="step === 'pawns'" class="panel bleed">
       <h2>Special pawns <small>(click to disable)</small></h2>
       <div v-for="g in pawnGroups" :key="g.type" class="group">
         <h3>
@@ -232,36 +295,32 @@ function restart() {
     </section>
 
     <!-- Result -->
-    <section v-else-if="result" class="panel result">
+    <section v-else-if="result" class="panel bleed result">
+      <div v-if="expansion" class="exp-col">
+        <button class="plain" :class="{ marking: excluding }" :disabled="!excluding" @click="toggle(marked, expansion.id)">
+          <Tile :name="expansion.name" :image="expansion.image" aspect="2" :selected="!excluding" :disabled="marked.has(expansion.id) && excluding" />
+          <span v-if="excluding" class="mark" :class="{ on: marked.has(expansion.id) }">{{ marked.has(expansion.id) ? '✕' : '' }}</span>
+        </button>
+      </div>
+      <p v-else class="note">No expansion enabled — playing the base game.</p>
       <h2>Your game</h2>
-      <div class="row">
-        <div v-if="expansion" class="col exp-col">
-          <h3>Expansion</h3>
-          <button class="plain" :class="{ marking: excluding }" :disabled="!excluding" @click="toggle(marked, expansion.id)">
-            <Tile :name="expansion.name" :image="expansion.image" aspect="2" :selected="!excluding" :disabled="marked.has(expansion.id) && excluding" />
-            <span v-if="excluding" class="mark" :class="{ on: marked.has(expansion.id) }">{{ marked.has(expansion.id) ? '✕' : '' }}</span>
+      <div class="result-items">
+        <div class="obj-list grid obj">
+          <button v-for="o in result.objectives" :key="o.id" class="plain" :class="{ marking: excluding }"
+            :disabled="!excluding" @click="toggle(marked, o.id)">
+            <Tile :name="o.name" :image="o.image" aspect="1" :selected="!excluding" :disabled="marked.has(o.id) && excluding"
+              :tag="o.source === 'base' ? '' : o.source" />
+            <span v-if="excluding" class="mark" :class="{ on: marked.has(o.id) }">{{ marked.has(o.id) ? '✕' : '' }}</span>
           </button>
         </div>
-        <p v-else class="note">No expansion enabled — playing the base game.</p>
-        <div class="col wide">
-          <h3>Objectives</h3>
-          <div class="grid obj">
-            <button v-for="o in result.objectives" :key="o.id" class="plain" :class="{ marking: excluding }"
-              :disabled="!excluding" @click="toggle(marked, o.id)">
-              <Tile :name="o.name" :image="o.image" aspect="1" :selected="!excluding" :disabled="marked.has(o.id) && excluding"
-                :tag="o.source === 'base' ? '' : o.source" />
-              <span v-if="excluding" class="mark" :class="{ on: marked.has(o.id) }">{{ marked.has(o.id) ? '✕' : '' }}</span>
+        <div v-if="result.pawns" class="pawn-cell">
+          <div v-for="(p, type) in result.pawns" :key="type" class="pawn-item">
+            <h3>{{ type }}</h3>
+            <button class="plain" :class="{ marking: excluding }" :disabled="!excluding" @click="toggle(marked, p.id)">
+              <Tile :name="p.name" :image="p.image" aspect="17/9" :selected="!excluding" :disabled="marked.has(p.id) && excluding" />
+              <span v-if="excluding" class="mark" :class="{ on: marked.has(p.id) }">{{ marked.has(p.id) ? '✕' : '' }}</span>
             </button>
           </div>
-        </div>
-      </div>
-      <div v-if="result.pawns" class="row">
-        <div v-for="(p, type) in result.pawns" :key="type" class="col">
-          <h3>{{ type }}</h3>
-          <button class="plain" :class="{ marking: excluding }" :disabled="!excluding" @click="toggle(marked, p.id)">
-            <Tile :name="p.name" :image="p.image" aspect="17/9" :selected="!excluding" :disabled="marked.has(p.id) && excluding" />
-            <span v-if="excluding" class="mark" :class="{ on: marked.has(p.id) }">{{ marked.has(p.id) ? '✕' : '' }}</span>
-          </button>
         </div>
       </div>
       <SetupRules v-if="expansion" :expansion-id="expansion.id" :expansion-name="expansion.name" />
@@ -343,7 +402,41 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
 .big { font-size: 1.5rem; font-weight: 800; padding: 14px 40px; border-radius: 40px; border: 3px solid var(--navy);
   background: var(--orange); color: #fff; box-shadow: 0 6px 0 var(--navy); }
 .big:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--navy); }
-.row { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
-.col { width: var(--size-pawn); } .col.exp-col { width: var(--size-expansion); } .col.wide { flex: 1; min-width: 280px; }
-@media (max-width: 640px) { .extras { grid-template-columns: 1fr 1fr; } .note { grid-column: 1 / -1; } }
+/* Result page (desktop) */
+.exp-col { width: var(--size-expansion); margin-bottom: 8px; }
+.result-items { display: grid; gap: 16px; }
+.pawn-cell { display: flex; gap: 20px; flex-wrap: wrap; }
+.pawn-item { width: var(--size-pawn); }
+.pawn-item h3 { margin-top: 0; }
+@media (max-width: 640px) {
+  .extras { grid-template-columns: 1fr 1fr; } .note { grid-column: 1 / -1; }
+
+  /* Selection and result pages: edge-to-edge panels with a full-width expansion banner */
+  .panel.bleed { margin: 0 -16px; border-width: 3px 0; border-radius: 0; padding: 16px 12px; }
+  .picked, .exp-col { width: auto; margin: -16px -12px 12px; }
+  .picked :deep(.tile), .exp-col :deep(.tile) { border-radius: 0; border-width: 0 0 3px; box-shadow: none; }
+  .topbar { display: grid; gap: 4px; }
+
+  .bleed .obj { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .bleed .pawn { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+  .ratios { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .ratio .chip { padding: 8px 0; border-radius: 12px; }
+
+  /* Result: objectives in a 2x2 grid, the drawn pawns share the fourth cell */
+  .result-items { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .obj-list { display: contents; }
+  .pawn-cell { aspect-ratio: 1; display: grid; grid-template-rows: repeat(3, 1fr); gap: 4px; min-height: 0; }
+  .pawn-item { width: auto; min-height: 0; }
+  .pawn-item h3 { display: none; }
+  .pawn-item .plain { height: 100%; width: 100%; display: flex; justify-content: center; }
+  .pawn-item :deep(.tile) { height: 100%; max-width: 100%; }
+  .pawn-item .mark { top: 2px; right: 2px; width: 18px; height: 18px; font-size: .65rem; border-width: 2px; }
+}
+
+@media (max-width: 379px) {
+  .bleed .obj { grid-template-columns: 1fr; }
+  .bleed .pawn { grid-template-columns: repeat(2, 1fr); }
+  .ratios { grid-template-columns: repeat(3, 1fr); }
+}
 </style>

@@ -33,4 +33,8 @@ img, .placeholder { width: 100%; height: 100%; object-fit: cover; display: block
 }
 .tag { position: absolute; top: 6px; left: 6px; font-size: .65rem; font-weight: 700; padding: 2px 6px;
   border-radius: 8px; background: var(--orange); color: #fff; text-transform: uppercase; }
+@media (max-width: 640px) {
+  .label { font-size: .7rem; padding: 3px 4px; }
+  .tag { font-size: .55rem; }
+}
 </style>
