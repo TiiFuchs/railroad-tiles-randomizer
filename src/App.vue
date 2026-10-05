@@ -21,9 +21,9 @@ const disabledPawns = persistedSet('disabledPawns')
 const ALL_PAWNS = [...TRAVELERS, ...TRAINS, ...CARS]
 
 const pawnGroups = [
-  { type: 'traveler', title: 'Travelers', pawns: TRAVELERS },
-  { type: 'train', title: 'Trains', pawns: TRAINS },
-  { type: 'car', title: 'Cars', pawns: CARS },
+  { type: 'car', title: 'Special Car Pawns', pawns: CARS },
+  { type: 'train', title: 'Special Train Pawns', pawns: TRAINS },
+  { type: 'traveler', title: 'Special Traveler Pawns', pawns: TRAVELERS },
 ] as const
 
 const result = ref<{ objectives: Objective[]; pawns: Record<string, Pawn> | null } | null>(null)
@@ -31,10 +31,10 @@ const result = ref<{ objectives: Objective[]; pawns: Record<string, Pawn> | null
 const toggle = (set: Set<string>, id: string) => (set.has(id) ? set.delete(id) : set.add(id))
 
 const poolSources = computed(() => [
+  ...(expansion.value ? [expansion.value] : []),
   { id: 'base', name: 'Base Game' },
   ...(world.value ? [WORLD] : []),
   ...(promo.value ? [PROMO] : []),
-  ...(expansion.value ? [expansion.value] : []),
 ])
 const objectivesOf = (source: string) => OBJECTIVES.filter((o) => o.source === source)
 const isExpansionObjective = (o: Objective) => o.source === expansion.value?.id
@@ -144,7 +144,14 @@ function applyHash() {
       expansion.value = exp ?? null
       result.value = {
         objectives: objectives as Objective[],
-        pawns: pawnList.length ? Object.fromEntries((pawnList as Pawn[]).map((p) => [p.id.split('-')[0]!, p])) : null,
+        pawns: pawnList.length
+          ? Object.fromEntries(
+              pawnGroups.flatMap((g) => {
+                const p = (pawnList as Pawn[]).find((x) => x.id.startsWith(`${g.type}-`))
+                return p ? [[g.type, p]] : []
+              }),
+            )
+          : null,
       }
       excluding.value = false
       justExcluded.value = 0
@@ -305,7 +312,7 @@ function restart() {
       <p v-else class="note">No expansion enabled — playing the base game.</p>
       <h2>Your game</h2>
       <div class="result-items">
-        <div class="obj-list grid obj">
+        <div class="obj-list">
           <button v-for="o in result.objectives" :key="o.id" class="plain" :class="{ marking: excluding }"
             :disabled="!excluding" @click="toggle(marked, o.id)">
             <Tile :name="o.name" :image="o.image" aspect="1" :selected="!excluding" :disabled="marked.has(o.id) && excluding"
@@ -313,7 +320,7 @@ function restart() {
             <span v-if="excluding" class="mark" :class="{ on: marked.has(o.id) }">{{ marked.has(o.id) ? '✕' : '' }}</span>
           </button>
         </div>
-        <div v-if="result.pawns" class="pawn-cell">
+        <div v-if="result.pawns" class="pawn-row">
           <div v-for="(p, type) in result.pawns" :key="type" class="pawn-item">
             <h3>{{ type }}</h3>
             <button class="plain" :class="{ marking: excluding }" :disabled="!excluding" @click="toggle(marked, p.id)">
@@ -402,12 +409,13 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
 .big { font-size: 1.5rem; font-weight: 800; padding: 14px 40px; border-radius: 40px; border: 3px solid var(--navy);
   background: var(--orange); color: #fff; box-shadow: 0 6px 0 var(--navy); }
 .big:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--navy); }
-/* Result page (desktop) */
+/* Result page: objectives as a pyramid (1 on top, 2 below), pawns in one row underneath */
 .exp-col { width: var(--size-expansion); margin-bottom: 8px; }
-.result-items { display: grid; gap: 16px; }
-.pawn-cell { display: flex; gap: 20px; flex-wrap: wrap; }
-.pawn-item { width: var(--size-pawn); }
-.pawn-item h3 { margin-top: 0; }
+.result-items { display: grid; gap: 16px; max-width: calc(2 * var(--size-objective) + 12px); margin: 0 auto; }
+.obj-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.obj-list > :first-child { grid-column: 1 / -1; justify-self: center; width: calc(50% - 6px); }
+.pawn-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.pawn-item h3 { margin: 0 0 4px; font-size: .85rem; }
 @media (max-width: 640px) {
   .extras { grid-template-columns: 1fr 1fr; } .note { grid-column: 1 / -1; }
 
@@ -423,15 +431,12 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
   .ratios { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
   .ratio .chip { padding: 8px 0; border-radius: 12px; }
 
-  /* Result: objectives in a 2x2 grid, the drawn pawns share the fourth cell */
-  .result-items { grid-template-columns: 1fr 1fr; gap: 10px; }
-  .obj-list { display: contents; }
-  .pawn-cell { aspect-ratio: 1; display: grid; grid-template-rows: repeat(3, 1fr); gap: 4px; min-height: 0; }
-  .pawn-item { width: auto; min-height: 0; }
-  .pawn-item h3 { display: none; }
-  .pawn-item .plain { height: 100%; width: 100%; display: flex; justify-content: center; }
-  .pawn-item :deep(.tile) { height: 100%; max-width: 100%; }
-  .pawn-item .mark { top: 2px; right: 2px; width: 18px; height: 18px; font-size: .65rem; border-width: 2px; }
+  .result-items { gap: 10px; }
+  .obj-list { gap: 10px; }
+  .obj-list > :first-child { width: calc(50% - 5px); }
+  .pawn-row { gap: 8px; }
+  .pawn-item h3 { font-size: .7rem; }
+  .pawn-item .mark { top: 4px; right: 4px; width: 20px; height: 20px; font-size: .7rem; border-width: 2px; }
 }
 
 @media (max-width: 379px) {
