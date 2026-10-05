@@ -104,4 +104,12 @@ describe('App wizard', () => {
     expect(saved.disabledExpansions).toEqual([])
     expect(saved.world).toBe(true)
   })
+  it('shows setup rules for the chosen expansion', async () => {
+    const w = mount(App)
+    await next(w)
+    await next(w)
+    await next(w)
+    expect(w.text()).toContain('Additional setup:')
+    expect(w.find('.setup strong').exists()).toBe(true)
+  })
 })

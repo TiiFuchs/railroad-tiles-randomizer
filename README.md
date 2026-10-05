@@ -66,6 +66,7 @@ npm run build        # production build into dist/
 
 - **Names, objectives, pawns:** edit `src/data.ts`.
 - **Tile sizes:** change `--size-expansion`, `--size-objective` and `--size-pawn` in `src/style.css`.
+- **Expansion setup rules:** edit the steps (1–3 per expansion, `**bold**` supported) in `src/setup-rules.ts`.
 - **Artwork:** drop images into `public/images/`. Missing images fall back to a placeholder.
 
 | Folder | File name | Format |
@@ -73,6 +74,7 @@ npm run build        # production build into dist/
 | `expansions/` | `<id>.png`, e.g. `desert.png`, `world.png`, `promo.png` | 2:1 landscape (e.g. 800×400) |
 | `objectives/` | `<source>-<name>.png`, e.g. `base-city-hall.png`, `canals-doges-tower.png` | square |
 | `pawns/` | `<type>-<name>.png`, e.g. `car-tow-truck.png`, `traveler-police-officer.png` | 17:9 landscape (e.g. 680×360) |
+| `setup/` | `<expansion-id>.png`, e.g. `desert.png` | any ratio, about 720 px wide |
 
 Names are lowercase and hyphenated, with apostrophes dropped.
 

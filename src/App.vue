@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import Tile from './components/Tile.vue'
+import SetupRules from './components/SetupRules.vue'
 import { CARS, EXPANSIONS, OBJECTIVES, PROMO, TRAINS, TRAVELERS, WORLD, type Objective, type Pawn } from './data'
 import { persistedRef, persistedSet } from './storage'
 import { OBJECTIVE_COUNT, drawObjectives, pick, type Ratio } from './randomizer'
@@ -257,6 +258,7 @@ function restart() {
           </button>
         </div>
       </div>
+      <SetupRules v-if="expansion" :expansion-id="expansion.id" :expansion-name="expansion.name" />
       <div v-if="excluding" class="exclude-bar">
         <span>Marked items won't be drawn again. Click a tile to toggle it ({{ marked.size }} marked). The expansion is not marked by default.</span>
         <button class="link" @click="[...resultIds, ...(expansion ? [expansion.id] : [])].forEach((id) => marked.add(id))">all</button> /
