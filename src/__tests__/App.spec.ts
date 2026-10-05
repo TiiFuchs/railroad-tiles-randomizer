@@ -112,4 +112,10 @@ describe('App wizard', () => {
     expect(w.text()).toContain('Additional setup:')
     expect(w.find('.setup strong').exists()).toBe(true)
   })
+  it('quick play jumps to the result', async () => {
+    const w = mount(App)
+    await w.find('button.quick').trigger('click')
+    expect(w.text()).toContain('Your game')
+    expect(w.text()).toContain('Additional setup:')
+  })
 })

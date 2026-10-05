@@ -19,6 +19,8 @@ All seven expansions are shown as covers: **Canals, Countryside, Desert, Energy,
 
 Press **Next** and one of your enabled expansions is drawn at random.
 
+In a hurry? **⚡ Quick play** draws everything at once using your saved settings and jumps straight to the result.
+
 ### 2. 🎯 Shape the objectives
 You'll see every objective available for your game: base game, World (if on), the promo pack (if on) and the drawn expansion. All are selected at first. Click any tile to leave it out.
 

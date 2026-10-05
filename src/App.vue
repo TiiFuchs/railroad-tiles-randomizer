@@ -54,6 +54,11 @@ function drawExpansion() {
   step.value = 'objectives'
 }
 
+function quickPlay() {
+  drawExpansion()
+  showResult()
+}
+
 function nextFromObjectives() {
   if (world.value) step.value = 'pawns'
   else showResult()
@@ -153,6 +158,7 @@ function restart() {
         </p>
       </div>
       <div class="nav">
+        <button class="quick" title="Draw immediately with your saved settings" @click="quickPlay">⚡ Quick play</button>
         <button class="big" @click="drawExpansion">Next ▶</button>
       </div>
       <p class="reset">
@@ -327,6 +333,10 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
 .mark { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--navy);
   background: #fff; display: grid; place-items: center; font-weight: 800; color: #fff; }
 .mark.on { background: #c0392b; }
+.quick { font-weight: 800; font-size: 1.1rem; padding: 10px 24px; border-radius: 30px; border: 3px solid var(--navy);
+  background: var(--cream); color: var(--navy); box-shadow: 0 4px 0 var(--navy); margin-left: auto; }
+.quick:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--navy); }
+.quick + .big { margin-left: 0; }
 .reset { margin: 16px 0 0; text-align: center; font-size: .8rem; opacity: .85; }
 .warn { color: var(--orange); font-weight: 700; }
 .pawn { grid-template-columns: repeat(auto-fill, minmax(var(--size-pawn), 1fr)); }
