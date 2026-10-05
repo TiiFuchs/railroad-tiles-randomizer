@@ -76,6 +76,8 @@ npm run build        # production build into dist/
 
 Names are lowercase and hyphenated, with apostrophes dropped.
 
+Use full-size originals: `npm run build` automatically downscales the copies in `dist/` (expansions 600 px wide, objectives and pawns 400 px; smaller images are never enlarged) via `scripts/optimize-images.mjs`. Your files in `public/images/` are never modified. If you change the tile sizes in `src/style.css`, adjust the widths in that script too.
+
 ### 🚀 Deploying
 
 A GitHub Actions workflow (`.github/workflows/deploy.yml`) tests, builds and publishes the site to GitHub Pages on every push to `main`. Set **Settings → Pages → Source** to **GitHub Actions**.
