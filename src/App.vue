@@ -38,7 +38,7 @@ const activePool = computed(() => poolSources.value.flatMap((s) => objectivesOf(
 const setGroup = (ids: string[], disabled: Set<string>, on: boolean) =>
   ids.forEach((id) => (on ? disabled.delete(id) : disabled.add(id)))
 
-// Ratio is "other objectives : expansion objectives"
+// Ratio is "expansion objectives : other objectives"
 const ratios = [
   ...Array.from({ length: OBJECTIVE_COUNT + 1 }, (_, i) => ({ value: i as Ratio, other: OBJECTIVE_COUNT - i, exp: i })),
   { value: 'free' as Ratio, other: 0, exp: 0 },
@@ -78,9 +78,16 @@ function restart() {
 
 <template>
   <header class="hero">
-    <div class="sign">
-      <span class="title">Railroad</span>
-      <span class="sub">Tiles Randomizer</span>
+    <div class="logo">
+      <svg viewBox="0 0 600 260" aria-hidden="true">
+        <path id="cartouche" class="outer" d="M60,40 H240 Q270,40 300,6 Q330,40 360,40 H540 Q560,40 560,60 Q540,75 540,95 V165 Q540,185 560,200 Q560,220 540,220 H360 Q330,220 300,254 Q270,220 240,220 H60 Q40,220 40,200 Q60,185 60,165 V95 Q60,75 40,60 Q40,40 60,40 Z" />
+        <path class="inner" d="M60,40 H240 Q270,40 300,6 Q330,40 360,40 H540 Q560,40 560,60 Q540,75 540,95 V165 Q540,185 560,200 Q560,220 540,220 H360 Q330,220 300,254 Q270,220 240,220 H60 Q40,220 40,200 Q60,185 60,165 V95 Q60,75 40,60 Q40,40 60,40 Z" transform="translate(300 130) scale(.95 .9) translate(-300 -130)" />
+      </svg>
+      <div class="words">
+        <span class="title">Railroad</span>
+        <span class="sub">Tiles</span>
+        <span class="tagline">Randomizer</span>
+      </div>
     </div>
   </header>
 
@@ -116,15 +123,15 @@ function restart() {
           <Tile :name="expansion.name" :image="expansion.image" aspect="2" selected />
         </div>
         <div class="ratio">
-          <h3>Objective ratio <small>(other : expansion)</small></h3>
+          <h3>Objective ratio <small>(expansion : other)</small></h3>
           <div class="ratios">
             <button v-for="r in ratios" :key="String(r.value)" class="chip" :class="{ on: ratio === r.value }" @click="ratio = r.value">
               <template v-if="r.value === 'free'">Free</template>
-              <template v-else>{{ r.other }} : {{ r.exp }}</template>
+              <template v-else>{{ r.exp }} : {{ r.other }}</template>
             </button>
           </div>
           <p class="note">
-            {{ ratio === 'free' ? 'Any 3 objectives from the whole pool.' : `${OBJECTIVE_COUNT - (ratio as number)} from base/World/promo, ${ratio} from ${expansion?.name ?? 'the expansion'}.` }}
+            {{ ratio === 'free' ? 'Any 3 objectives from the whole pool.' : `${ratio} from ${expansion?.name ?? 'the expansion'}, ${OBJECTIVE_COUNT - (ratio as number)} from base/World/promo.` }}
           </p>
         </div>
       </div>
@@ -205,14 +212,15 @@ function restart() {
 </template>
 
 <style scoped>
-.hero { padding: 28px 12px 12px; display: grid; place-items: center; }
-.sign {
-  background: #fff; border: 3px solid var(--navy); outline: 3px solid #fff; outline-offset: -9px;
-  padding: 18px 48px; text-align: center; border-radius: 20px 20px 20px 20px; box-shadow: 0 0 0 3px var(--sky), 0 6px 0 var(--brick);
-}
-.title { display: block; font-family: Georgia, serif; font-size: clamp(2rem, 7vw, 3.6rem); letter-spacing: .12em;
-  text-transform: uppercase; font-weight: 700; }
-.sub { color: var(--orange); font-weight: 800; letter-spacing: .3em; text-transform: uppercase; }
+.hero { padding: 20px 12px 8px; display: grid; place-items: center; }
+.logo { position: relative; width: min(520px, 92vw); aspect-ratio: 600 / 260; container-type: inline-size; filter: drop-shadow(0 5px 0 rgba(217, 138, 61, .55)); }
+.logo svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.outer { fill: #fff; stroke: var(--navy); stroke-width: 3; stroke-linejoin: round; }
+.inner { fill: none; stroke: var(--blue); stroke-width: 1.5; stroke-linejoin: round; }
+.words { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; gap: 1.5cqw; }
+.title { font-family: 'Limelight', Georgia, serif; font-size: 10.5cqw; color: var(--navy); text-transform: uppercase; letter-spacing: .02em; }
+.sub { font-family: 'Josefin Sans', sans-serif; font-weight: 700; color: var(--orange); font-size: 7.5cqw; letter-spacing: .06em; text-transform: uppercase; }
+.tagline { font-family: 'Josefin Sans', sans-serif; font-weight: 700; font-size: 2.6cqw; letter-spacing: .45em; margin-right: -.45em; color: var(--blue); text-transform: uppercase; }
 main { max-width: 1100px; margin: 0 auto; padding: 12px 16px 60px; display: grid; gap: 20px; }
 .panel { background: rgba(255,255,255,.7); border: 3px solid var(--navy); border-radius: 18px; padding: 16px 20px;
   box-shadow: 0 5px 0 var(--brick-light); }

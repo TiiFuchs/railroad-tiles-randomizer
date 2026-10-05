@@ -16,6 +16,8 @@
     "format": "oxfmt src/"
   },
   "dependencies": {
+    "@fontsource/josefin-sans": "^5.3.0",
+    "@fontsource/limelight": "^5.3.0",
     "vue": "rc"
   },
   "devDependencies": {
