@@ -342,8 +342,10 @@ function restart() {
         <span>Marked items won't be drawn again. Click a tile to toggle it ({{ marked.size }} marked). The expansion is not marked by default.</span>
         <button class="link" @click="[...resultIds, ...(expansion ? [expansion.id] : [])].forEach((id) => marked.add(id))">all</button> /
         <button class="link" @click="marked.clear()">none</button>
-        <button class="back" @click="excluding = false">Cancel</button>
-        <button class="big small" :disabled="!marked.size" @click="applyExclusions">Exclude {{ marked.size }}</button>
+        <div class="exclude-actions">
+          <button class="back" @click="excluding = false">Cancel</button>
+          <button class="big small" :disabled="!marked.size" @click="applyExclusions">Exclude {{ marked.size }}</button>
+        </div>
       </div>
       <p v-else-if="justExcluded" class="note done">✓ {{ justExcluded }} item(s) excluded from future draws. You can re-enable them in the objective/pawn steps.</p>
       <div v-else class="exclude-bar">
@@ -402,7 +404,8 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
   border: 2px dashed var(--navy); border-radius: 14px; background: rgba(255,255,255,.6); font-size: .9rem; }
 .exclude-bar:has(> .pill:only-child) { border: 0; background: none; padding: 0; justify-content: center; }
 .pill { font-size: .85rem; padding: 6px 16px; border-width: 2px; box-shadow: 0 3px 0 var(--navy); }
-.exclude-bar .big.small { font-size: 1rem; padding: 6px 20px; box-shadow: 0 3px 0 var(--navy); margin-left: auto; }
+.exclude-actions { flex-basis: 100%; display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+.exclude-bar .big.small { font-size: 1rem; padding: 6px 20px; box-shadow: 0 3px 0 var(--navy); }
 .exclude-bar .big:disabled { opacity: .4; }
 .exclude-bar .back { padding: 6px 16px; }
 .done { color: var(--navy); font-weight: 700; }
