@@ -221,12 +221,12 @@ function restart() {
       </h2>
       <div class="grid exp">
         <button v-for="e in EXPANSIONS" :key="e.id" class="plain" @click="toggle(disabledExpansions, e.id)">
-          <Tile :name="e.name" :image="e.image" aspect="2" :disabled="disabledExpansions.has(e.id)" />
+          <Tile :name="e.name" :image="e.image" aspect="2" :color="SOURCE_COLORS[e.id]" :disabled="disabledExpansions.has(e.id)" />
         </button>
       </div>
       <div class="extras">
         <button class="plain" @click="world = !world">
-          <Tile :name="WORLD.name" :image="WORLD.image" aspect="2" :disabled="!world" :tag="world ? 'On' : 'Off'" />
+          <Tile :name="WORLD.name" :image="WORLD.image" aspect="2" :color="SOURCE_COLORS.world" :disabled="!world" :tag="world ? 'On' : 'Off'" />
         </button>
         <button class="plain" @click="promo = !promo">
           <Tile :name="PROMO.name" :image="PROMO.image" aspect="2" :disabled="!promo" :tag="promo ? 'On' : 'Off'" />
@@ -249,7 +249,7 @@ function restart() {
     <section v-else-if="step === 'objectives'" class="panel bleed">
       <div class="topbar">
         <div v-if="expansion" class="picked">
-          <Tile :name="expansion.name" :image="expansion.image" aspect="2" selected />
+          <Tile :name="expansion.name" :image="expansion.image" aspect="2" :color="SOURCE_COLORS[expansion.id]" selected />
         </div>
         <div class="ratio">
           <h3>Objective ratio <small>(expansion : other)</small></h3>
@@ -275,7 +275,7 @@ function restart() {
         </h3>
         <div class="grid obj">
           <button v-for="o in objectivesOf(s.id)" :key="o.id" class="plain" @click="toggle(disabledObjectives, o.id)">
-            <Tile :name="o.name" :image="o.image" aspect="1" :disabled="disabledObjectives.has(o.id)" />
+            <Tile :name="o.name" :image="o.image" aspect="1" :color="SOURCE_COLORS[o.source]" :disabled="disabledObjectives.has(o.id)" />
           </button>
         </div>
       </div>
@@ -298,7 +298,7 @@ function restart() {
         </h3>
         <div class="grid pawn">
           <button v-for="p in g.pawns" :key="p.id" class="plain" @click="toggle(disabledPawns, p.id)">
-            <Tile :name="p.name" :image="p.image" aspect="17/9" caption-below :disabled="disabledPawns.has(p.id)" />
+            <Tile :name="p.name" :image="p.image" aspect="17/9" :disabled="disabledPawns.has(p.id)" />
           </button>
         </div>
       </div>
@@ -313,7 +313,7 @@ function restart() {
     <section v-else-if="result" class="panel bleed result">
       <div v-if="expansion" class="exp-col">
         <button class="plain" :class="{ marking: excluding }" :disabled="!excluding" @click="toggle(marked, expansion.id)">
-          <Tile :name="expansion.name" :image="expansion.image" aspect="2" :selected="!excluding" :disabled="marked.has(expansion.id) && excluding" />
+          <Tile :name="expansion.name" :image="expansion.image" aspect="2" :color="SOURCE_COLORS[expansion.id]" :selected="!excluding" :disabled="marked.has(expansion.id) && excluding" />
           <span v-if="excluding" class="mark" :class="{ on: marked.has(expansion.id) }">{{ marked.has(expansion.id) ? '✕' : '' }}</span>
         </button>
       </div>
@@ -323,7 +323,7 @@ function restart() {
         <div class="obj-list">
           <button v-for="o in result.objectives" :key="o.id" class="plain" :class="{ marking: excluding }"
             :disabled="!excluding" @click="toggle(marked, o.id)">
-            <Tile :name="o.name" :image="o.image" aspect="1" :selected="!excluding" :disabled="marked.has(o.id) && excluding"
+            <Tile :name="o.name" :image="o.image" aspect="1" :color="SOURCE_COLORS[o.source]" :selected="!excluding" :disabled="marked.has(o.id) && excluding"
               :tag="o.source === 'base' ? '' : o.source" :tag-color="SOURCE_COLORS[o.source]" />
             <span v-if="excluding" class="mark" :class="{ on: marked.has(o.id) }">{{ marked.has(o.id) ? '✕' : '' }}</span>
           </button>
@@ -332,7 +332,7 @@ function restart() {
           <div v-for="(p, type) in result.pawns" :key="type" class="pawn-item">
             <h3>{{ type }}</h3>
             <button class="plain" :class="{ marking: excluding }" :disabled="!excluding" @click="toggle(marked, p.id)">
-              <Tile :name="p.name" :image="p.image" aspect="17/9" caption-below :selected="!excluding" :disabled="marked.has(p.id) && excluding" />
+              <Tile :name="p.name" :image="p.image" aspect="17/9" :selected="!excluding" :disabled="marked.has(p.id) && excluding" />
               <span v-if="excluding" class="mark" :class="{ on: marked.has(p.id) }">{{ marked.has(p.id) ? '✕' : '' }}</span>
             </button>
           </div>
