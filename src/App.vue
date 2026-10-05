@@ -428,7 +428,13 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
 .result-items { display: grid; gap: 16px; max-width: calc(3 * var(--size-objective) + 24px); margin: 0 auto; }
 .obj-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .pawn-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.pawn-item h3 { margin: 0 0 4px; font-size: .85rem; }
+.pawn-item h3 {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 8px; justify-content: center;
+  font-family: 'Josefin Sans', sans-serif; font-weight: 700; font-size: 1rem; letter-spacing: .22em; text-transform: uppercase; color: var(--navy);
+}
+.pawn-item h3::before, .pawn-item h3::after {
+  content: ''; flex: 1; height: 6px; border-top: 2px solid var(--orange); border-bottom: 2px solid var(--orange); opacity: .8;
+}
 @media (max-width: 640px) {
   .extras { grid-template-columns: 1fr 1fr; } .note { grid-column: 1 / -1; }
 
@@ -452,7 +458,7 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
   .obj-list { grid-template-columns: 1fr 1fr; gap: 10px; }
   .obj-list > :first-child { grid-column: 1 / -1; justify-self: center; width: calc(50% - 5px); }
   .pawn-row { gap: 8px; }
-  .pawn-item h3 { font-size: .7rem; }
+  .pawn-item h3 { font-size: .75rem; letter-spacing: .12em; gap: 5px; margin-bottom: 6px; }
   .pawn-item .mark { top: 4px; right: 4px; width: 20px; height: 20px; font-size: .7rem; border-width: 2px; }
 }
 
