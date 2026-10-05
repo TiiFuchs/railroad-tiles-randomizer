@@ -212,7 +212,13 @@ function restart() {
   <main>
     <!-- Step 1 -->
     <section v-if="step === 'expansions'" class="panel">
-      <h2>Which expansions do you own? <small>(click to toggle)</small></h2>
+      <h2>
+        Which expansions do you own? <small>(click to toggle)</small>
+        <span class="links">
+          <button class="link" @click="setGroup(EXPANSIONS.map((e) => e.id), disabledExpansions, true)">all</button> /
+          <button class="link" @click="setGroup(EXPANSIONS.map((e) => e.id), disabledExpansions, false)">none</button>
+        </span>
+      </h2>
       <div class="grid exp">
         <button v-for="e in EXPANSIONS" :key="e.id" class="plain" @click="toggle(disabledExpansions, e.id)">
           <Tile :name="e.name" :image="e.image" aspect="2" :disabled="disabledExpansions.has(e.id)" />
@@ -383,6 +389,9 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
 .link { background: none; border: 0; color: var(--blue); text-decoration: underline; padding: 0; }
 .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 12px; }
 .nav .big:only-child { margin-left: auto; }
+/* Navigation buttons stay at the bottom of the screen */
+.nav { position: sticky; bottom: 0; z-index: 10; margin: 16px -20px -16px; padding: 10px 20px 14px;
+  background: rgba(251, 248, 238, .96); border-top: 3px solid var(--navy); border-radius: 0 0 14px 14px; }
 .back { font-weight: 700; padding: 10px 22px; border-radius: 30px; border: 3px solid var(--navy); background: var(--cream); color: var(--navy); }
 .topbar { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
 .picked { width: 200px; }
@@ -427,10 +436,7 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
   .picked :deep(.tile), .exp-col :deep(.tile) { border-radius: 0; border-width: 0 0 3px; box-shadow: none; }
   .topbar { display: grid; gap: 4px; }
 
-  /* Navigation buttons stay at the bottom of the screen */
-  .nav { position: sticky; bottom: 0; z-index: 10; margin: 16px -20px -16px; padding: 10px 20px 14px;
-    background: rgba(251, 248, 238, .96); border-top: 3px solid var(--navy); }
-  .bleed .nav { margin: 16px -12px -16px; padding: 10px 12px 14px; }
+  .bleed .nav { margin: 16px -12px -16px; padding: 10px 12px 14px; border-radius: 0; }
   .nav .big { font-size: 1.25rem; padding: 10px 28px; }
   .nav .back, .nav .quick { padding: 8px 18px; }
 
