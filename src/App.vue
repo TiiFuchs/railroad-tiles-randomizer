@@ -1,0 +1,251 @@
+<script setup lang="ts">
+import { computed, reactive, ref } from 'vue'
+import Tile from './components/Tile.vue'
+import { CARS, EXPANSIONS, OBJECTIVES, PROMO, TRAINS, TRAVELERS, WORLD, type Objective, type Pawn } from './data'
+import { OBJECTIVE_COUNT, drawObjectives, pick, type Ratio } from './randomizer'
+
+type Step = 'expansions' | 'objectives' | 'pawns' | 'result'
+const step = ref<Step>('expansions')
+
+const enabledExpansions = reactive(new Set(EXPANSIONS.map((e) => e.id)))
+const world = ref(true)
+const promo = ref(true)
+const expansion = ref<(typeof EXPANSIONS)[number] | null>(null)
+const ratio = ref<Ratio>(1)
+const disabledObjectives = reactive(new Set<string>())
+const disabledPawns = reactive(new Set<string>())
+
+const pawnGroups = [
+  { type: 'traveler', title: 'Travelers', pawns: TRAVELERS },
+  { type: 'train', title: 'Trains', pawns: TRAINS },
+  { type: 'car', title: 'Cars', pawns: CARS },
+] as const
+
+const result = ref<{ objectives: Objective[]; pawns: Record<string, Pawn> | null } | null>(null)
+
+const toggle = (set: Set<string>, id: string) => (set.has(id) ? set.delete(id) : set.add(id))
+
+const poolSources = computed(() => [
+  { id: 'base', name: 'Base Game' },
+  ...(world.value ? [WORLD] : []),
+  ...(promo.value ? [PROMO] : []),
+  ...(expansion.value ? [expansion.value] : []),
+])
+const objectivesOf = (source: string) => OBJECTIVES.filter((o) => o.source === source)
+const isExpansionObjective = (o: Objective) => o.source === expansion.value?.id
+const activePool = computed(() => poolSources.value.flatMap((s) => objectivesOf(s.id)).filter((o) => !disabledObjectives.has(o.id)))
+
+const setGroup = (ids: string[], disabled: Set<string>, on: boolean) =>
+  ids.forEach((id) => (on ? disabled.delete(id) : disabled.add(id)))
+
+// Ratio is "other objectives : expansion objectives"
+const ratios = [
+  ...Array.from({ length: OBJECTIVE_COUNT + 1 }, (_, i) => ({ value: i as Ratio, other: OBJECTIVE_COUNT - i, exp: i })),
+  { value: 'free' as Ratio, other: 0, exp: 0 },
+]
+
+const pawnsReady = computed(() => pawnGroups.every((g) => g.pawns.some((p) => !disabledPawns.has(p.id))))
+
+function drawExpansion() {
+  expansion.value = pick(EXPANSIONS.filter((e) => enabledExpansions.has(e.id)), 1)[0] ?? null
+  disabledObjectives.clear()
+  step.value = 'objectives'
+}
+
+function nextFromObjectives() {
+  if (world.value) step.value = 'pawns'
+  else showResult()
+}
+
+function showResult() {
+  const base = activePool.value.filter((o) => !isExpansionObjective(o))
+  const exp = activePool.value.filter(isExpansionObjective)
+  result.value = {
+    objectives: drawObjectives(base, exp, ratio.value),
+    pawns:
+      world.value && pawnsReady.value
+        ? Object.fromEntries(pawnGroups.map((g) => [g.type, pick(g.pawns.filter((p) => !disabledPawns.has(p.id)), 1)[0]!]))
+        : null,
+  }
+  step.value = 'result'
+}
+
+function restart() {
+  result.value = null
+  step.value = 'expansions'
+}
+</script>
+
+<template>
+  <header class="hero">
+    <div class="sign">
+      <span class="title">Railroad</span>
+      <span class="sub">Tiles Randomizer</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- Step 1 -->
+    <section v-if="step === 'expansions'" class="panel">
+      <h2>Which expansions do you own? <small>(click to toggle)</small></h2>
+      <div class="grid exp">
+        <button v-for="e in EXPANSIONS" :key="e.id" class="plain" @click="toggle(enabledExpansions, e.id)">
+          <Tile :name="e.name" :image="e.image" aspect="2" :disabled="!enabledExpansions.has(e.id)" />
+        </button>
+      </div>
+      <div class="extras">
+        <button class="plain" @click="world = !world">
+          <Tile :name="WORLD.name" :image="WORLD.image" aspect="2" :disabled="!world" :tag="world ? 'On' : 'Off'" />
+        </button>
+        <button class="plain" @click="promo = !promo">
+          <Tile :name="PROMO.name" :image="PROMO.image" aspect="2" :disabled="!promo" :tag="promo ? 'On' : 'Off'" />
+        </button>
+        <p class="note">
+          The World expansion adds objectives and lets you randomize the special pawns. The promo pack adds 2 objectives.
+        </p>
+      </div>
+      <div class="nav">
+        <button class="big" @click="drawExpansion">Next ▶</button>
+      </div>
+    </section>
+
+    <!-- Step 2 -->
+    <section v-else-if="step === 'objectives'" class="panel">
+      <div class="topbar">
+        <div v-if="expansion" class="picked">
+          <Tile :name="expansion.name" :image="expansion.image" aspect="2" selected />
+        </div>
+        <div class="ratio">
+          <h3>Objective ratio <small>(other : expansion)</small></h3>
+          <div class="ratios">
+            <button v-for="r in ratios" :key="String(r.value)" class="chip" :class="{ on: ratio === r.value }" @click="ratio = r.value">
+              <template v-if="r.value === 'free'">Free</template>
+              <template v-else>{{ r.other }} : {{ r.exp }}</template>
+            </button>
+          </div>
+          <p class="note">
+            {{ ratio === 'free' ? 'Any 3 objectives from the whole pool.' : `${OBJECTIVE_COUNT - (ratio as number)} from base/World/promo, ${ratio} from ${expansion?.name ?? 'the expansion'}.` }}
+          </p>
+        </div>
+      </div>
+      <h2>Objectives <small>(click to disable)</small></h2>
+      <div v-for="s in poolSources" :key="s.id" class="group">
+        <h3>
+          {{ s.name }}
+          <span class="links">
+            <button class="link" @click="setGroup(objectivesOf(s.id).map((o) => o.id), disabledObjectives, true)">all</button> /
+            <button class="link" @click="setGroup(objectivesOf(s.id).map((o) => o.id), disabledObjectives, false)">none</button>
+          </span>
+        </h3>
+        <div class="grid obj">
+          <button v-for="o in objectivesOf(s.id)" :key="o.id" class="plain" @click="toggle(disabledObjectives, o.id)">
+            <Tile :name="o.name" :image="o.image" aspect="1" :disabled="disabledObjectives.has(o.id)" />
+          </button>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="back" @click="step = 'expansions'">◀ Back</button>
+        <button class="big" @click="nextFromObjectives">Next ▶</button>
+      </div>
+    </section>
+
+    <!-- Step 3 -->
+    <section v-else-if="step === 'pawns'" class="panel">
+      <h2>Special pawns <small>(click to disable)</small></h2>
+      <div v-for="g in pawnGroups" :key="g.type" class="group">
+        <h3>
+          {{ g.title }}
+          <span class="links">
+            <button class="link" @click="setGroup(g.pawns.map((p) => p.id), disabledPawns, true)">all</button> /
+            <button class="link" @click="setGroup(g.pawns.map((p) => p.id), disabledPawns, false)">none</button>
+          </span>
+        </h3>
+        <div class="grid pawn">
+          <button v-for="p in g.pawns" :key="p.id" class="plain" @click="toggle(disabledPawns, p.id)">
+            <Tile :name="p.name" :image="p.image" aspect="17/9" :disabled="disabledPawns.has(p.id)" />
+          </button>
+        </div>
+      </div>
+      <p v-if="!pawnsReady" class="note warn">Select at least one pawn of each type to have pawns randomized.</p>
+      <div class="nav">
+        <button class="back" @click="step = 'objectives'">◀ Back</button>
+        <button class="big" @click="showResult">Next ▶</button>
+      </div>
+    </section>
+
+    <!-- Result -->
+    <section v-else-if="result" class="panel result">
+      <h2>Your game</h2>
+      <div class="row">
+        <div v-if="expansion" class="col exp-col">
+          <h3>Expansion</h3>
+          <Tile :name="expansion.name" :image="expansion.image" aspect="2" selected />
+        </div>
+        <p v-else class="note">No expansion enabled — playing the base game.</p>
+        <div class="col wide">
+          <h3>Objectives</h3>
+          <div class="grid obj">
+            <Tile v-for="o in result.objectives" :key="o.id" :name="o.name" :image="o.image" aspect="1" selected
+              :tag="o.source === 'base' ? '' : o.source" />
+          </div>
+        </div>
+      </div>
+      <div v-if="result.pawns" class="row">
+        <div v-for="(p, type) in result.pawns" :key="type" class="col">
+          <h3>{{ type }}</h3>
+          <Tile :name="p.name" :image="p.image" aspect="17/9" selected />
+        </div>
+      </div>
+      <div class="nav">
+        <button class="back" @click="restart">↺ Start over</button>
+        <button class="big" @click="showResult">🎲 Re-roll</button>
+      </div>
+    </section>
+  </main>
+</template>
+
+<style scoped>
+.hero { padding: 28px 12px 12px; display: grid; place-items: center; }
+.sign {
+  background: #fff; border: 3px solid var(--navy); outline: 3px solid #fff; outline-offset: -9px;
+  padding: 18px 48px; text-align: center; border-radius: 20px 20px 20px 20px; box-shadow: 0 0 0 3px var(--sky), 0 6px 0 var(--brick);
+}
+.title { display: block; font-family: Georgia, serif; font-size: clamp(2rem, 7vw, 3.6rem); letter-spacing: .12em;
+  text-transform: uppercase; font-weight: 700; }
+.sub { color: var(--orange); font-weight: 800; letter-spacing: .3em; text-transform: uppercase; }
+main { max-width: 1100px; margin: 0 auto; padding: 12px 16px 60px; display: grid; gap: 20px; }
+.panel { background: rgba(255,255,255,.7); border: 3px solid var(--navy); border-radius: 18px; padding: 16px 20px;
+  box-shadow: 0 5px 0 var(--brick-light); }
+h2 { margin: 0 0 12px; } h2 small { font-weight: 400; font-size: .75rem; opacity: .7; }
+h3 { margin: 12px 0 8px; text-transform: capitalize; }
+.grid { display: grid; gap: 12px; }
+.exp { grid-template-columns: repeat(auto-fill, minmax(var(--size-expansion), 1fr)); }
+.obj { grid-template-columns: repeat(auto-fill, minmax(var(--size-objective), 1fr)); }
+.extras { display: grid; grid-template-columns: var(--size-expansion) var(--size-expansion) 1fr; gap: 12px; margin-top: 16px; align-items: center; }
+.plain { background: none; border: 0; padding: 0; text-align: inherit; color: inherit; }
+.plain:hover :deep(.tile) { transform: translateY(-3px); }
+.note { font-size: .85rem; opacity: .8; }
+.ratios { display: flex; gap: 12px; flex-wrap: wrap; }
+.chip { display: grid; padding: 10px 18px; border: 3px solid var(--navy); border-radius: 14px; background: var(--cream);
+  color: var(--navy); text-align: center; }
+.chip span { font-size: .75rem; }
+.chip.on { background: var(--navy); color: #fff; }
+.links { font-size: .75rem; font-weight: 400; margin-left: 8px; }
+.link { background: none; border: 0; color: var(--blue); text-decoration: underline; padding: 0; }
+.nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 12px; }
+.nav .big:only-child { margin-left: auto; }
+.back { font-weight: 700; padding: 10px 22px; border-radius: 30px; border: 3px solid var(--navy); background: var(--cream); color: var(--navy); }
+.topbar { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.picked { width: 200px; }
+.ratio h3 { margin: 0 0 6px; font-size: .95rem; } .ratio h3 small { font-weight: 400; opacity: .7; }
+.ratio .chip { padding: 4px 14px; font-weight: 700; }
+.ratio .note { margin: 6px 0 0; }
+.warn { color: var(--orange); font-weight: 700; }
+.pawn { grid-template-columns: repeat(auto-fill, minmax(var(--size-pawn), 1fr)); }
+.big { font-size: 1.5rem; font-weight: 800; padding: 14px 40px; border-radius: 40px; border: 3px solid var(--navy);
+  background: var(--orange); color: #fff; box-shadow: 0 6px 0 var(--navy); }
+.big:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--navy); }
+.row { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+.col { width: var(--size-pawn); } .col.exp-col { width: var(--size-expansion); } .col.wide { flex: 1; min-width: 280px; }
+@media (max-width: 640px) { .extras { grid-template-columns: 1fr 1fr; } .note { grid-column: 1 / -1; } }
+</style>

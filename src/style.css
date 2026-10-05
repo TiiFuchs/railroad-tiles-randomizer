@@ -1,0 +1,15 @@
+:root {
+  /* Tile sizes: minimum width of a tile in each grid. Adjust here. */
+  --size-expansion: 240px;
+  --size-objective: 190px;
+  --size-pawn: 190px;
+  --navy: #2b3a7a; --orange: #e8751a; --brick: #d98a3d; --brick-light: #f2c27b;
+  --sky: #cfe6f4; --teal: #6fb3b8; --cream: #fbf8ee; --blue: #4f86c6;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; color: var(--navy); font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+  background: linear-gradient(var(--sky), #eaf4f4 40%, #f6ecd2);
+  min-height: 100vh;
+}
+button { font: inherit; cursor: pointer; }

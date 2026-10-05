@@ -1,0 +1,36 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+defineProps<{ name: string; image: string; selected?: boolean; disabled?: boolean; aspect?: string; tag?: string }>()
+const failed = ref(false)
+</script>
+
+<template>
+  <div class="tile" :class="{ selected, disabled }" :style="{ aspectRatio: aspect ?? '1' }">
+    <img v-if="!failed" :src="image" :alt="name" @error="failed = true" />
+    <div v-else class="placeholder"><span class="rails"></span></div>
+    <span class="label">{{ name }}</span>
+    <span v-if="tag" class="tag">{{ tag }}</span>
+  </div>
+</template>
+
+<style scoped>
+.tile {
+  position: relative; overflow: hidden; border-radius: 14px; border: 3px solid var(--navy);
+  background: var(--cream); box-shadow: 0 4px 0 var(--brick); transition: transform .15s, filter .2s;
+}
+.tile.disabled { filter: grayscale(1) opacity(.45); }
+.tile.selected { outline: 4px solid var(--orange); outline-offset: 2px; }
+img, .placeholder { width: 100%; height: 100%; object-fit: cover; display: block; }
+.placeholder {
+  background: linear-gradient(160deg, var(--sky) 0%, var(--teal) 55%, var(--brick-light) 100%);
+  display: grid; place-items: center;
+}
+.rails { width: 70%; height: 22%; border-top: 4px solid var(--navy); border-bottom: 4px solid var(--navy);
+  background: repeating-linear-gradient(90deg, var(--navy) 0 4px, transparent 4px 14px); opacity: .5; }
+.label {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 4px 6px; text-align: center; font-size: .8rem;
+  font-weight: 700; background: rgba(255,255,255,.88); color: var(--navy);
+}
+.tag { position: absolute; top: 6px; left: 6px; font-size: .65rem; font-weight: 700; padding: 2px 6px;
+  border-radius: 8px; background: var(--orange); color: #fff; text-transform: uppercase; }
+</style>
