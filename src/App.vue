@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import Tile from './components/Tile.vue'
 import SetupRules from './components/SetupRules.vue'
-import { CARS, EXPANSIONS, OBJECTIVES, PROMO, TRAINS, TRAVELERS, WORLD, type Objective, type Pawn } from './data'
+import { CARS, EXPANSIONS, OBJECTIVES, PROMO, SOURCE_COLORS, TRAINS, TRAVELERS, WORLD, type Objective, type Pawn } from './data'
 import { persistedRef, persistedSet } from './storage'
 import { OBJECTIVE_COUNT, drawObjectives, pick, type Ratio } from './randomizer'
 
@@ -318,7 +318,7 @@ function restart() {
           <button v-for="o in result.objectives" :key="o.id" class="plain" :class="{ marking: excluding }"
             :disabled="!excluding" @click="toggle(marked, o.id)">
             <Tile :name="o.name" :image="o.image" aspect="1" :selected="!excluding" :disabled="marked.has(o.id) && excluding"
-              :tag="o.source === 'base' ? '' : o.source" />
+              :tag="o.source === 'base' ? '' : o.source" :tag-color="SOURCE_COLORS[o.source]" />
             <span v-if="excluding" class="mark" :class="{ on: marked.has(o.id) }">{{ marked.has(o.id) ? '✕' : '' }}</span>
           </button>
         </div>

@@ -67,6 +67,7 @@ npm run build        # production build into dist/
 ### Customizing
 
 - **Names, objectives, pawns:** edit `src/data.ts`.
+- **Expansion pill colors:** edit `SOURCE_COLORS` in `src/data.ts`.
 - **Tile sizes:** change `--size-expansion`, `--size-objective` and `--size-pawn` in `src/style.css`.
 - **Expansion setup rules:** edit the steps (1–3 per expansion, `**bold**` supported) in `src/setup-rules.ts`.
 - **Artwork:** drop images into `public/images/`. Missing images fall back to a placeholder.

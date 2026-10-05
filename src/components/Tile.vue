@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-defineProps<{ name: string; image: string; selected?: boolean; disabled?: boolean; aspect?: string; tag?: string }>()
+defineProps<{ name: string; image: string; selected?: boolean; disabled?: boolean; aspect?: string; tag?: string; tagColor?: string }>()
+
+// Dark text on light pill colors for readability
+const textOn = (hex?: string) => {
+  if (!hex) return '#fff'
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+  return 0.299 * r! + 0.587 * g! + 0.114 * b! > 160 ? 'var(--navy)' : '#fff'
+}
 const failed = ref(false)
 </script>
 
@@ -9,7 +16,7 @@ const failed = ref(false)
     <img v-if="!failed" :src="image" :alt="name" @error="failed = true" />
     <div v-else class="placeholder"><span class="rails"></span></div>
     <span class="label">{{ name }}</span>
-    <span v-if="tag" class="tag">{{ tag }}</span>
+    <span v-if="tag" class="tag" :style="tagColor ? { background: tagColor, color: textOn(tagColor) } : undefined">{{ tag }}</span>
   </div>
 </template>
 

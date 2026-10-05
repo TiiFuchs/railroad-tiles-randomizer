@@ -17,6 +17,18 @@ export const EXPANSIONS: Expansion[] = byName(['Desert', 'Countryside', 'Monumen
 export const WORLD = { id: 'world', name: 'World', image: 'images/expansions/world.png' }
 export const PROMO = { id: 'promo', name: 'Hospital & Local Market', image: 'images/expansions/promo.png' }
 
+// Pill colors per source id (shown on drawn objectives). Edit here; sources not listed use the default orange.
+export const SOURCE_COLORS: Record<string, string> = {
+  world: '#005489',
+  canals: '#415D71',
+  countryside: '#367E45',
+  desert: '#EAA02F',
+  energy: '#52588E',
+  monuments: '#772C23',
+  forest: '#E16A21',
+  lakes: '#3C6BB0',
+}
+
 const make = (source: Source, names: string[]): Objective[] =>
   byName(names.map((name) => ({
     id: `${source}-${slug(name)}`,
