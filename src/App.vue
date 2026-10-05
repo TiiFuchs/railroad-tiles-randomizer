@@ -171,8 +171,10 @@ onUnmounted(() => window.removeEventListener('hashchange', applyHash))
 
 watch(currentHash, (h) => {
   if ((location.hash || '#/') !== h) location.hash = h
-  window.scrollTo(0, 0)
 })
+
+// Only page changes scroll to the top; a re-roll stays where it is
+watch(step, () => window.scrollTo(0, 0))
 
 function resetAll() {
   if (!confirm('Reset everything? This re-enables every expansion, objective and pawn, and restores the default settings.')) return
@@ -330,7 +332,6 @@ function restart() {
           </div>
         </div>
       </div>
-      <SetupRules v-if="expansion" :expansion-id="expansion.id" :expansion-name="expansion.name" />
       <div v-if="excluding" class="exclude-bar">
         <span>Marked items won't be drawn again. Click a tile to toggle it ({{ marked.size }} marked). The expansion is not marked by default.</span>
         <button class="link" @click="[...resultIds, ...(expansion ? [expansion.id] : [])].forEach((id) => marked.add(id))">all</button> /
@@ -340,8 +341,9 @@ function restart() {
       </div>
       <p v-else-if="justExcluded" class="note done">✓ {{ justExcluded }} item(s) excluded from future draws. You can re-enable them in the objective/pawn steps.</p>
       <div v-else class="exclude-bar">
-        <button class="link" @click="startExcluding">🚫 Don't draw these again…</button>
+        <button class="back pill" @click="startExcluding">🚫 Don't draw these again…</button>
       </div>
+      <SetupRules v-if="expansion" :expansion-id="expansion.id" :expansion-name="expansion.name" />
       <div class="nav">
         <button class="back" @click="restart">↺ Start over</button>
         <button class="big" @click="showResult">🎲 Re-roll</button>
@@ -389,7 +391,8 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
 .ratio .note { margin: 6px 0 0; }
 .exclude-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 16px; padding: 10px 14px;
   border: 2px dashed var(--navy); border-radius: 14px; background: rgba(255,255,255,.6); font-size: .9rem; }
-.exclude-bar:has(> .link:only-child) { border: 0; background: none; padding: 0; }
+.exclude-bar:has(> .pill:only-child) { border: 0; background: none; padding: 0; justify-content: center; }
+.pill { font-size: .85rem; padding: 6px 16px; border-width: 2px; box-shadow: 0 3px 0 var(--navy); }
 .exclude-bar .big.small { font-size: 1rem; padding: 6px 20px; box-shadow: 0 3px 0 var(--navy); margin-left: auto; }
 .exclude-bar .big:disabled { opacity: .4; }
 .exclude-bar .back { padding: 6px 16px; }
@@ -400,20 +403,19 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
   background: #fff; display: grid; place-items: center; font-weight: 800; color: #fff; }
 .mark.on { background: #c0392b; }
 .quick { font-weight: 800; font-size: 1.1rem; padding: 10px 24px; border-radius: 30px; border: 3px solid var(--navy);
-  background: var(--cream); color: var(--navy); box-shadow: 0 4px 0 var(--navy); margin-left: auto; }
+  background: var(--cream); color: var(--navy); box-shadow: 0 4px 0 var(--navy); }
 .quick:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--navy); }
-.quick + .big { margin-left: 0; }
+.quick + .big { margin-left: auto; }
 .reset { margin: 16px 0 0; text-align: center; font-size: .8rem; opacity: .85; }
 .warn { color: var(--orange); font-weight: 700; }
 .pawn { grid-template-columns: repeat(auto-fill, minmax(var(--size-pawn), 1fr)); }
 .big { font-size: 1.5rem; font-weight: 800; padding: 14px 40px; border-radius: 40px; border: 3px solid var(--navy);
   background: var(--orange); color: #fff; box-shadow: 0 6px 0 var(--navy); }
 .big:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--navy); }
-/* Result page: objectives as a pyramid (1 on top, 2 below), pawns in one row underneath */
-.exp-col { width: var(--size-expansion); margin-bottom: 8px; }
-.result-items { display: grid; gap: 16px; max-width: calc(2 * var(--size-objective) + 12px); margin: 0 auto; }
-.obj-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.obj-list > :first-child { grid-column: 1 / -1; justify-self: center; width: calc(50% - 6px); }
+/* Result page: objectives in one row, pawns in one row underneath (mobile uses a pyramid, see below) */
+.exp-col { width: min(100%, 560px); margin: 0 auto 8px; }
+.result-items { display: grid; gap: 16px; max-width: calc(3 * var(--size-objective) + 24px); margin: 0 auto; }
+.obj-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .pawn-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .pawn-item h3 { margin: 0 0 4px; font-size: .85rem; }
 @media (max-width: 640px) {
@@ -425,15 +427,22 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
   .picked :deep(.tile), .exp-col :deep(.tile) { border-radius: 0; border-width: 0 0 3px; box-shadow: none; }
   .topbar { display: grid; gap: 4px; }
 
+  /* Navigation buttons stay at the bottom of the screen */
+  .nav { position: sticky; bottom: 0; z-index: 10; margin: 16px -20px -16px; padding: 10px 20px 14px;
+    background: rgba(251, 248, 238, .96); border-top: 3px solid var(--navy); }
+  .bleed .nav { margin: 16px -12px -16px; padding: 10px 12px 14px; }
+  .nav .big { font-size: 1.25rem; padding: 10px 28px; }
+  .nav .back, .nav .quick { padding: 8px 18px; }
+
   .bleed .obj { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .bleed .pawn { grid-template-columns: repeat(3, 1fr); gap: 8px; }
 
   .ratios { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
   .ratio .chip { padding: 8px 0; border-radius: 12px; }
 
-  .result-items { gap: 10px; }
-  .obj-list { gap: 10px; }
-  .obj-list > :first-child { width: calc(50% - 5px); }
+  .result-items { gap: 10px; max-width: none; }
+  .obj-list { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .obj-list > :first-child { grid-column: 1 / -1; justify-self: center; width: calc(50% - 5px); }
   .pawn-row { gap: 8px; }
   .pawn-item h3 { font-size: .7rem; }
   .pawn-item .mark { top: 4px; right: 4px; width: 20px; height: 20px; font-size: .7rem; border-width: 2px; }

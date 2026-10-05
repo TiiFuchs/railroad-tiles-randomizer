@@ -72,11 +72,11 @@ describe('App wizard', () => {
     await next(w)
     await next(w)
     await next(w)
-    const link = w.findAll('button.link').find((b) => b.text().includes("Don't draw"))!
+    const link = w.findAll('button.pill').find((b) => b.text().includes("Don't draw"))!
     await link.trigger('click')
     expect(w.text()).toContain('6 marked')
     await w.findAll('button.back').find((b) => b.text() === 'Cancel')!.trigger('click')
-    await w.findAll('button.link').find((b) => b.text().includes("Don't draw"))!.trigger('click')
+    await w.findAll('button.pill').find((b) => b.text().includes("Don't draw"))!.trigger('click')
     await w.find('button.big.small').trigger('click')
     await new Promise((r) => setTimeout(r))
     const saved = JSON.parse(localStorage.getItem('railroad-tiles-randomizer:v1')!)
@@ -88,7 +88,7 @@ describe('App wizard', () => {
     await next(w)
     await next(w)
     await next(w)
-    await w.findAll('button.link').find((b) => b.text().includes("Don't draw"))!.trigger('click')
+    await w.findAll('button.pill').find((b) => b.text().includes("Don't draw"))!.trigger('click')
     expect(w.text()).toContain('6 marked')
     await w.find('.exp-col button.plain').trigger('click')
     expect(w.text()).toContain('7 marked')

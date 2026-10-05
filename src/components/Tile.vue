@@ -19,7 +19,6 @@ const failed = ref(false)
   background: var(--cream); box-shadow: 0 4px 0 var(--brick); transition: transform .15s, filter .2s;
 }
 .tile.disabled { filter: grayscale(1) opacity(.45); }
-.tile.selected { outline: 4px solid var(--orange); outline-offset: 2px; }
 img, .placeholder { width: 100%; height: 100%; object-fit: cover; display: block; }
 .placeholder {
   background: linear-gradient(160deg, var(--sky) 0%, var(--teal) 55%, var(--brick-light) 100%);
