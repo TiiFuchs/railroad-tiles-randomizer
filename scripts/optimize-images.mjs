@@ -5,7 +5,7 @@ import { join, extname } from 'node:path'
 import sharp from 'sharp'
 
 // Target widths in px (roughly 2x the largest displayed size, for high-DPI screens). Keep in sync with src/style.css.
-const WIDTHS = { expansions: 600, objectives: 400, pawns: 400, setup: 800 }
+const WIDTHS = { expansions: 600, objectives: 400, pawns: 400, setup: 800, token: 600 }
 const root = join(import.meta.dirname, '..', 'dist', 'images')
 
 let before = 0

@@ -2,12 +2,14 @@
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import Tile from './components/Tile.vue'
 import SetupRules from './components/SetupRules.vue'
+import TokenFlip from './components/TokenFlip.vue'
 import { CARS, EXPANSIONS, OBJECTIVES, PROMO, SOURCE_COLORS, TRAINS, TRAVELERS, WORLD, type Objective, type Pawn } from './data'
 import { persistedRef, persistedSet } from './storage'
 import { OBJECTIVE_COUNT, drawObjectives, pick, type Ratio } from './randomizer'
 
 type Step = 'expansions' | 'objectives' | 'pawns' | 'result'
 const step = ref<Step>('expansions')
+const showToken = ref(false)
 
 const disabledExpansions = persistedSet('disabledExpansions')
 const isBool = (v: unknown): v is boolean => typeof v === 'boolean'
@@ -240,6 +242,9 @@ function restart() {
         <button class="big" @click="drawExpansion">Next ▶</button>
       </div>
       <p class="reset">
+        <button class="back pill" @click="showToken = true">🪙 Two-player token</button>
+      </p>
+      <p class="reset">
         <button class="link" @click="resetAll">Reset all settings</button>
         <small>— re-enables every expansion, objective and pawn</small>
       </p>
@@ -355,8 +360,12 @@ function restart() {
         <button class="back" @click="restart">↺ Start over</button>
         <button class="big" @click="showResult">🎲 Re-roll</button>
       </div>
+      <p class="reset">
+        <button class="back pill" @click="showToken = true">🪙 Two-player token</button>
+      </p>
     </section>
   </main>
+  <TokenFlip v-if="showToken" @close="showToken = false" />
 </template>
 
 <style scoped>
