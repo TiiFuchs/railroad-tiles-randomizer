@@ -399,6 +399,9 @@ function restart() {
       </p>
     </section>
   </main>
+  <footer class="site-footer">
+    <p>Unofficial fan project, not affiliated with Horrible Guild or the game's authors. Railroad Tiles and its artwork belong to their respective owners.</p>
+  </footer>
   <TokenFlip v-if="showToken" @close="showToken = false" />
   <RulesDialog v-if="info" v-bind="info" @close="info = null" />
   <RulebookDialog v-if="rulebook" v-bind="rulebook" @close="rulebook = null" />
@@ -468,6 +471,8 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
 .quick:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--navy); }
 .quick + .big { margin-left: auto; }
 .reset { margin: 16px 0 0; text-align: center; font-size: .8rem; opacity: .85; }
+.site-footer { max-width: 1100px; margin: 0 auto; padding: 8px 16px 20px; text-align: center; font-size: .78rem; line-height: 1.4; opacity: .8; }
+.site-footer p { margin: 0; }
 .warn { color: var(--orange); font-weight: 700; }
 .pawn { grid-template-columns: repeat(auto-fill, minmax(var(--size-pawn), 1fr)); }
 .big { font-size: 1.5rem; font-weight: 800; padding: 14px 40px; border-radius: 40px; border: 3px solid var(--navy);
