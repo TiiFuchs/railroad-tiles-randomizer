@@ -157,4 +157,13 @@ describe('App wizard', () => {
     expect(w.text()).toContain('Flipping')
     vi.useRealTimers()
   })
+  it('shows rules from the info icon', async () => {
+    const w = mount(App)
+    await next(w)
+    const icon = w.findAll('.cell').find((c) => c.text().includes('City Hall'))!.find('button.info')
+    expect(icon.exists()).toBe(true)
+    await icon.trigger('click')
+    expect(w.find('[role=dialog]').text()).toContain('City Hall')
+    expect(w.find('[role=dialog]').text()).toContain('four orthogonal directions')
+  })
 })

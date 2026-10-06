@@ -3,6 +3,8 @@ import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import Tile from './components/Tile.vue'
 import SetupRules from './components/SetupRules.vue'
 import TokenFlip from './components/TokenFlip.vue'
+import RulesDialog from './components/RulesDialog.vue'
+import { RULES } from './rules'
 import { CARS, EXPANSIONS, OBJECTIVES, PROMO, SOURCE_COLORS, TRAINS, TRAVELERS, WORLD, type Objective, type Pawn } from './data'
 import { persistedRef, persistedSet } from './storage'
 import { OBJECTIVE_COUNT, drawObjectives, pick, type Ratio } from './randomizer'
@@ -10,6 +12,12 @@ import { OBJECTIVE_COUNT, drawObjectives, pick, type Ratio } from './randomizer'
 type Step = 'expansions' | 'objectives' | 'pawns' | 'result'
 const step = ref<Step>('expansions')
 const showToken = ref(false)
+
+const info = ref<{ name: string; image: string; text: string; aspect: string; color?: string } | null>(null)
+const hasRules = (id: string) => !!RULES[id]
+const openInfo = (item: { id: string; name: string; image: string }, aspect: string, color?: string) => {
+  if (RULES[item.id]) info.value = { name: item.name, image: item.image, text: RULES[item.id]!, aspect, color }
+}
 
 const disabledExpansions = persistedSet('disabledExpansions')
 const isBool = (v: unknown): v is boolean => typeof v === 'boolean'
@@ -279,9 +287,12 @@ function restart() {
           </span>
         </h3>
         <div class="grid obj">
-          <button v-for="o in objectivesOf(s.id)" :key="o.id" class="plain" @click="toggle(disabledObjectives, o.id)">
-            <Tile :name="o.name" :image="o.image" aspect="1" :color="SOURCE_COLORS[o.source]" :disabled="disabledObjectives.has(o.id)" />
-          </button>
+          <div v-for="o in objectivesOf(s.id)" :key="o.id" class="cell">
+            <button class="plain" @click="toggle(disabledObjectives, o.id)">
+              <Tile :name="o.name" :image="o.image" aspect="1" :color="SOURCE_COLORS[o.source]" :disabled="disabledObjectives.has(o.id)" />
+            </button>
+            <button v-if="hasRules(o.id)" class="info" aria-label="Show rules" @click="openInfo(o, '1', SOURCE_COLORS[o.source])">i</button>
+          </div>
         </div>
       </div>
       <div class="nav">
@@ -302,9 +313,12 @@ function restart() {
           </span>
         </h3>
         <div class="grid pawn">
-          <button v-for="p in g.pawns" :key="p.id" class="plain" @click="toggle(disabledPawns, p.id)">
-            <Tile :name="p.name" :image="p.image" aspect="17/9" :disabled="disabledPawns.has(p.id)" />
-          </button>
+          <div v-for="p in g.pawns" :key="p.id" class="cell">
+            <button class="plain" @click="toggle(disabledPawns, p.id)">
+              <Tile :name="p.name" :image="p.image" aspect="17/9" :disabled="disabledPawns.has(p.id)" />
+            </button>
+            <button v-if="hasRules(p.id)" class="info" aria-label="Show rules" @click="openInfo(p, '17/9')">i</button>
+          </div>
         </div>
       </div>
       <p v-if="!pawnsReady" class="note warn">Select at least one pawn of each type to have pawns randomized.</p>
@@ -325,8 +339,8 @@ function restart() {
       <p v-else class="note">No expansion enabled — playing the base game.</p>
       <div class="result-items">
         <div class="obj-list">
-          <button v-for="o in result.objectives" :key="o.id" class="plain" :class="{ marking: excluding }"
-            :disabled="!excluding" @click="toggle(marked, o.id)">
+          <button v-for="o in result.objectives" :key="o.id" class="plain" :class="{ marking: excluding, clickable: !excluding && hasRules(o.id) }"
+            :disabled="!excluding && !hasRules(o.id)" @click="excluding ? toggle(marked, o.id) : openInfo(o, '1', SOURCE_COLORS[o.source])">
             <Tile :name="o.name" :image="o.image" aspect="1" :color="SOURCE_COLORS[o.source]" :selected="!excluding" :disabled="marked.has(o.id) && excluding"
               :tag="o.source === 'base' ? '' : o.source" :tag-color="SOURCE_COLORS[o.source]" />
             <span v-if="excluding" class="mark" :class="{ on: marked.has(o.id) }">{{ marked.has(o.id) ? '✕' : '' }}</span>
@@ -335,7 +349,8 @@ function restart() {
         <div v-if="result.pawns" class="pawn-row">
           <div v-for="(p, type) in result.pawns" :key="type" class="pawn-item">
             <h3>{{ type }}</h3>
-            <button class="plain" :class="{ marking: excluding }" :disabled="!excluding" @click="toggle(marked, p.id)">
+            <button class="plain" :class="{ marking: excluding, clickable: !excluding && hasRules(p.id) }" :disabled="!excluding && !hasRules(p.id)"
+              @click="excluding ? toggle(marked, p.id) : openInfo(p, '17/9')">
               <Tile :name="p.name" :image="p.image" aspect="17/9" :selected="!excluding" :disabled="marked.has(p.id) && excluding" />
               <span v-if="excluding" class="mark" :class="{ on: marked.has(p.id) }">{{ marked.has(p.id) ? '✕' : '' }}</span>
             </button>
@@ -366,6 +381,7 @@ function restart() {
     </section>
   </main>
   <TokenFlip v-if="showToken" @close="showToken = false" />
+  <RulesDialog v-if="info" v-bind="info" @close="info = null" />
 </template>
 
 <style scoped>
@@ -418,6 +434,10 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
 .exclude-bar .back { padding: 6px 16px; }
 .done { color: var(--navy); font-weight: 700; }
 .plain { position: relative; }
+.cell { position: relative; }
+.info { position: absolute; top: 8px; left: 8px; z-index: 2; width: 31px; height: 31px; border-radius: 50%; border: 2px solid var(--navy);
+  background: #fff; color: var(--navy); font: italic 700 1.15rem Georgia, serif; line-height: 1; padding: 0; box-shadow: 0 2px 0 var(--navy); }
+.clickable { cursor: pointer; }
 .marking { cursor: pointer; }
 .mark { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--navy);
   background: #fff; display: grid; place-items: center; font-weight: 800; color: #fff; }
