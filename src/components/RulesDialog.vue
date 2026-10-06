@@ -36,5 +36,5 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 .x { position: absolute; top: 10px; right: 10px; z-index: 2; width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--navy);
   background: #fff; color: var(--navy); font-weight: 800; line-height: 1; }
 .tile-wrap { width: min(100%, 260px); margin: 8px auto 0; }
-.text { margin: 18px 0 0; font-size: 1.05rem; line-height: 1.45; color: var(--navy); }
+.text { margin: 18px 0 0; font-size: 1.05rem; line-height: 1.45; color: var(--navy); text-align: justify; }
 </style>
