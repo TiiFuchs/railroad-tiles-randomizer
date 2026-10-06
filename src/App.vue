@@ -4,6 +4,8 @@ import Tile from './components/Tile.vue'
 import SetupRules from './components/SetupRules.vue'
 import TokenFlip from './components/TokenFlip.vue'
 import RulesDialog from './components/RulesDialog.vue'
+import RulebookDialog from './components/RulebookDialog.vue'
+import { prefersPopup, rulebookFor } from './rulebooks'
 import { RULES } from './rules'
 import { CARS, EXPANSIONS, OBJECTIVES, PROMO, SOURCE_COLORS, TRAINS, TRAVELERS, WORLD, type Objective, type Pawn } from './data'
 import { persistedRef, persistedSet } from './storage'
@@ -14,6 +16,13 @@ const step = ref<Step>('expansions')
 const showToken = ref(false)
 
 const info = ref<{ name: string; image: string; text: string; aspect: string; color?: string } | null>(null)
+const rulebook = ref<{ title: string; url: string } | null>(null)
+const openRulebook = (id: string, title: string) => {
+  const url = rulebookFor(id)
+  if (!url) return
+  if (prefersPopup()) rulebook.value = { title, url }
+  else window.open(url, '_blank', 'noopener')
+}
 const hasRules = (id: string) => !!RULES[id]
 const openInfo = (item: { id: string; name: string; image: string }, aspect: string, color?: string) => {
   if (RULES[item.id]) info.value = { name: item.name, image: item.image, text: RULES[item.id]!, aspect, color }
@@ -230,17 +239,26 @@ function restart() {
         </span>
       </h2>
       <div class="grid exp">
-        <button v-for="e in EXPANSIONS" :key="e.id" class="plain" @click="toggle(disabledExpansions, e.id)">
-          <Tile :name="e.name" :image="e.image" aspect="2" :color="SOURCE_COLORS[e.id]" :disabled="disabledExpansions.has(e.id)" />
-        </button>
+        <div v-for="e in EXPANSIONS" :key="e.id" class="cell">
+          <button class="plain" @click="toggle(disabledExpansions, e.id)">
+            <Tile :name="e.name" :image="e.image" aspect="2" :color="SOURCE_COLORS[e.id]" :disabled="disabledExpansions.has(e.id)" />
+          </button>
+          <button v-if="rulebookFor(e.id)" class="info right" aria-label="Open rulebook" @click="openRulebook(e.id, e.name)">i</button>
+        </div>
       </div>
       <div class="extras">
-        <button class="plain" @click="world = !world">
-          <Tile :name="WORLD.name" :image="WORLD.image" aspect="2" :color="SOURCE_COLORS.world" :disabled="!world" :tag="world ? 'On' : 'Off'" />
-        </button>
-        <button class="plain" @click="promo = !promo">
-          <Tile :name="PROMO.name" :image="PROMO.image" aspect="2" :disabled="!promo" :tag="promo ? 'On' : 'Off'" />
-        </button>
+        <div class="cell">
+          <button class="plain" @click="world = !world">
+            <Tile :name="WORLD.name" :image="WORLD.image" aspect="2" :color="SOURCE_COLORS.world" :disabled="!world" :tag="world ? 'On' : 'Off'" />
+          </button>
+          <button v-if="rulebookFor(WORLD.id)" class="info right" aria-label="Open rulebook" @click="openRulebook(WORLD.id, WORLD.name)">i</button>
+        </div>
+        <div class="cell">
+          <button class="plain" @click="promo = !promo">
+            <Tile :name="PROMO.name" :image="PROMO.image" aspect="2" :disabled="!promo" :tag="promo ? 'On' : 'Off'" />
+          </button>
+          <button v-if="rulebookFor(PROMO.id)" class="info right" aria-label="Open rulebook" @click="openRulebook(PROMO.id, PROMO.name)">i</button>
+        </div>
         <p class="note">
           The World expansion adds objectives and lets you randomize the special pawns. The promo pack adds 2 objectives.
         </p>
@@ -331,7 +349,8 @@ function restart() {
     <!-- Result -->
     <section v-else-if="result" class="panel bleed result">
       <div v-if="expansion" class="exp-col">
-        <button class="plain" :class="{ marking: excluding }" :disabled="!excluding" @click="toggle(marked, expansion.id)">
+        <button class="plain" :class="{ marking: excluding, clickable: !excluding && !!rulebookFor(expansion.id) }" :disabled="!excluding && !rulebookFor(expansion.id)"
+          @click="excluding ? toggle(marked, expansion.id) : openRulebook(expansion.id, expansion.name)">
           <Tile :name="expansion.name" :image="expansion.image" aspect="2" :color="SOURCE_COLORS[expansion.id]" :selected="!excluding" :disabled="marked.has(expansion.id) && excluding" />
           <span v-if="excluding" class="mark" :class="{ on: marked.has(expansion.id) }">{{ marked.has(expansion.id) ? '✕' : '' }}</span>
         </button>
@@ -382,6 +401,7 @@ function restart() {
   </main>
   <TokenFlip v-if="showToken" @close="showToken = false" />
   <RulesDialog v-if="info" v-bind="info" @close="info = null" />
+  <RulebookDialog v-if="rulebook" v-bind="rulebook" @close="rulebook = null" />
 </template>
 
 <style scoped>
@@ -437,6 +457,7 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
 .cell { position: relative; }
 .info { position: absolute; top: 8px; left: 8px; z-index: 2; width: 31px; height: 31px; border-radius: 50%; border: 2px solid var(--navy);
   background: #fff; color: var(--navy); font: italic 700 1.15rem Georgia, serif; line-height: 1; padding: 0; box-shadow: 0 2px 0 var(--navy); }
+.info.right { left: auto; right: 8px; }
 .clickable { cursor: pointer; }
 .marking { cursor: pointer; }
 .mark { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--navy);

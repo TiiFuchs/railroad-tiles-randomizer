@@ -74,6 +74,7 @@ npm run build        # production build into dist/
 - **Tile sizes:** change `--size-expansion`, `--size-objective` and `--size-pawn` in `src/style.css`.
 - **Objective and pawn rules texts:** edit `src/rules.ts` (keyed by id, `**bold**` supported). Entries with text get an ⓘ icon on the selection pages and open on tap on the result page.
 - **Expansion setup rules:** edit the steps (1–3 per expansion, `**bold**` supported) in `src/setup-rules.ts`.
+- **Rulebooks:** put PDFs in `src/assets/rulebooks/` named after the expansion id (`desert.pdf`, `world.pdf`, `promo.pdf`, …). They are detected automatically. Click the drawn expansion on the result page, or the ⓘ on the start page: desktop opens a popup, phones and tablets open a new tab.
 - **Artwork:** drop images into `public/images/`. Missing images fall back to a placeholder.
 
 | Folder | File name | Format |
