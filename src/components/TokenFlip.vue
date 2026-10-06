@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useScrollLock } from '../scrollLock'
 
 const emit = defineEmits<{ close: [] }>()
+useScrollLock()
 
 type Side = 'left' | 'right'
 const SIDES: Record<Side, { label: string; image: string }> = {
@@ -72,7 +74,7 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.backdrop { position: fixed; inset: 0; z-index: 100; background: rgba(43, 58, 122, .55); display: grid; place-items: center; padding: 16px; }
+.backdrop { position: fixed; inset: 0; z-index: 100; overscroll-behavior: contain; background: rgba(43, 58, 122, .55); display: grid; place-items: center; padding: 16px; }
 .dialog { position: relative; width: min(420px, 100%); background: var(--cream); border: 3px solid var(--navy); border-radius: 18px;
   box-shadow: 0 6px 0 var(--brick); padding: 20px; text-align: center; }
 h2 { margin: 0 0 4px; }

@@ -2,9 +2,11 @@
 import { computed, onMounted, onUnmounted } from 'vue'
 import Tile from './Tile.vue'
 import { parseBold } from '../setup-rules'
+import { useScrollLock } from '../scrollLock'
 
 const props = defineProps<{ name: string; image: string; text: string; aspect: string; color?: string }>()
 const emit = defineEmits<{ close: [] }>()
+useScrollLock()
 
 const parts = computed(() => parseBold(props.text))
 const onKey = (e: KeyboardEvent) => e.key === 'Escape' && emit('close')
@@ -28,7 +30,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 </template>
 
 <style scoped>
-.backdrop { position: fixed; inset: 0; z-index: 100; background: rgba(43, 58, 122, .55); display: grid; place-items: center; padding: 16px; overflow-y: auto; }
+.backdrop { position: fixed; inset: 0; z-index: 100; overscroll-behavior: contain; background: rgba(43, 58, 122, .55); display: grid; place-items: center; padding: 16px; overflow-y: auto; }
 .dialog { position: relative; width: min(380px, 100%); background: var(--cream); border: 3px solid var(--navy); border-radius: 18px;
   box-shadow: 0 6px 0 var(--brick); padding: 20px; }
 .x { position: absolute; top: 10px; right: 10px; z-index: 2; width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--navy);
