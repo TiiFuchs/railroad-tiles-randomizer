@@ -4,14 +4,14 @@
   "description": "Randomizer for Railroad Tiles expansions, objectives and pawns.",
   "icons": [
     {
-      "src": "/app-icon.svg",
+      "src": "/app-icon.png",
       "sizes": "any",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
-  "theme_color": "#2b3a7a",
-  "background_color": "#fbf8ee",
+  "theme_color": "#12649A",
+  "background_color": "#D4EDF7",
   "display": "standalone"
 }
 
