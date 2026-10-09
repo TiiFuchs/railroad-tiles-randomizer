@@ -99,6 +99,8 @@ function showResult() {
   }
   excluding.value = false
   justExcluded.value = 0
+  replaced.value = 0
+  replaceNote.value = ''
   step.value = 'result'
 }
 
@@ -106,6 +108,9 @@ function showResult() {
 const excluding = ref(false)
 const marked = reactive(new Set<string>())
 const justExcluded = ref(0)
+const replaced = ref(0)
+const expansionMarked = computed(() => !!expansion.value && marked.has(expansion.value.id))
+const replaceNote = ref('')
 const resultIds = computed(() => [
   ...(result.value?.objectives.map((o) => o.id) ?? []),
   ...Object.values(result.value?.pawns ?? {}).map((p) => p.id),
@@ -113,8 +118,9 @@ const resultIds = computed(() => [
 
 function startExcluding() {
   marked.clear()
-  resultIds.value.forEach((id) => marked.add(id)) // expansion is opt-in, so not marked by default
   justExcluded.value = 0
+  replaced.value = 0
+  replaceNote.value = ''
   excluding.value = true
 }
 
@@ -125,6 +131,37 @@ function applyExclusions() {
   })
   justExcluded.value = marked.size
   excluding.value = false
+}
+
+// Excludes the marked tiles and draws substitutes for them (the expansion is never replaced)
+function replaceMarked() {
+  const r = result.value
+  if (!r || !marked.size || (expansion.value && marked.has(expansion.value.id))) return
+  const count = marked.size
+  const missed: string[] = []
+  const ids = new Set(marked)
+  applyExclusions()
+  const taken = new Set(r.objectives.map((o) => o.id))
+  r.objectives = r.objectives.map((o) => {
+    if (!ids.has(o.id)) return o
+    const sameKind = (c: Objective) => ratio.value === 'free' || isExpansionObjective(c) === isExpansionObjective(o)
+    const sub = pick(activePool.value.filter((c) => !taken.has(c.id) && sameKind(c)), 1)[0]
+    if (!sub) { missed.push(o.name); return o }
+    taken.add(sub.id)
+    return sub
+  })
+  if (r.pawns) {
+    for (const [type, p] of Object.entries(r.pawns)) {
+      if (!ids.has(p.id)) continue
+      const group = pawnGroups.find((g) => g.type === type)!
+      const sub = pick(group.pawns.filter((c) => !disabledPawns.has(c.id)), 1)[0]
+      if (sub) r.pawns[type] = sub
+      else missed.push(p.name)
+    }
+  }
+  justExcluded.value = 0
+  replaced.value = count - missed.length
+  replaceNote.value = missed.length ? `No more tiles available to replace: ${missed.join(', ')}.` : ''
 }
 
 // --- URL <-> state (hash routing, so reloads and the back button restore the exact view)
@@ -176,6 +213,8 @@ function applyHash() {
       }
       excluding.value = false
       justExcluded.value = 0
+      replaced.value = 0
+      replaceNote.value = ''
       step.value = 'result'
       return
     }
@@ -211,6 +250,8 @@ function restart() {
   result.value = null
   excluding.value = false
   justExcluded.value = 0
+  replaced.value = 0
+  replaceNote.value = ''
   step.value = 'expansions'
 }
 </script>
@@ -387,18 +428,23 @@ function restart() {
         </div>
       </div>
       <div v-if="excluding" class="exclude-bar">
-        <span>Marked items won't be drawn again. Click a tile to toggle it ({{ marked.size }} marked). The expansion is not marked by default.</span>
-        <button class="link" @click="[...resultIds, ...(expansion ? [expansion.id] : [])].forEach((id) => marked.add(id))">all</button> /
+        <span>Tap the tiles you don't want ({{ marked.size }} selected). <b>Replace</b> draws new ones now; both options keep them out of future draws.<template v-if="expansionMarked"> The expansion can only be excluded, not replaced.</template></span>
+        <button class="link" @click="resultIds.forEach((id) => marked.add(id))">all</button> /
         <button class="link" @click="marked.clear()">none</button>
         <div class="exclude-actions">
           <button class="back" @click="excluding = false">Cancel</button>
-          <button class="big small" :disabled="!marked.size" @click="applyExclusions">Exclude {{ marked.size }}</button>
+          <button class="back" :disabled="!marked.size" @click="applyExclusions">Just exclude{{ marked.size ? ` ${marked.size}` : '' }}</button>
+          <button class="big small" :disabled="!marked.size || expansionMarked" @click="replaceMarked">Replace{{ marked.size ? ` ${marked.size}` : '' }}</button>
         </div>
       </div>
-      <p v-else-if="justExcluded" class="note done">✓ {{ justExcluded }} item(s) excluded from future draws. You can re-enable them in the objective/pawn steps.</p>
-      <div v-else class="exclude-bar">
-        <button class="back pill" @click="startExcluding">🚫 Don't draw these again…</button>
-      </div>
+      <template v-else>
+        <p v-if="replaced" class="note done">✓ {{ replaced }} tile(s) replaced and excluded from future draws.</p>
+        <p v-if="replaceNote" class="note">{{ replaceNote }}</p>
+        <p v-if="justExcluded" class="note done">✓ {{ justExcluded }} item(s) excluded from future draws. You can re-enable them in the objective/pawn steps.</p>
+        <div v-if="!justExcluded" class="exclude-bar">
+          <button class="back pill" @click="startExcluding">🔄 Replace / exclude tiles…</button>
+        </div>
+      </template>
       <SetupRules v-if="expansion" :expansion-id="expansion.id" :expansion-name="expansion.name" />
       <div class="nav">
         <button class="back" @click="restart">↺ Start over</button>
@@ -439,6 +485,7 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
 .plain { background: none; border: 0; padding: 0; text-align: inherit; color: inherit; }
 .plain:hover :deep(.tile) { transform: translateY(-3px); }
 .note { font-size: .85rem; opacity: .8; }
+.result .note { text-align: center; }
 .ratios { display: flex; gap: 12px; flex-wrap: wrap; }
 .chip { display: grid; padding: 10px 18px; border: 3px solid var(--navy); border-radius: 14px; background: var(--cream);
   color: var(--navy); text-align: center; }
@@ -465,6 +512,7 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
 .exclude-bar .big.small { font-size: 1rem; padding: 6px 20px; box-shadow: 0 3px 0 var(--navy); }
 .exclude-bar .big:disabled { opacity: .4; }
 .exclude-bar .back { padding: 6px 16px; }
+.exclude-bar .back:disabled { opacity: .4; }
 .done { color: var(--navy); font-weight: 700; }
 .plain { position: relative; }
 .cell { position: relative; }

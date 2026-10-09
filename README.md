@@ -49,7 +49,7 @@ Your choices are saved in your browser, so you only set things up once:
 
 - Expansions, objectives and pawns you turned off stay off.
 - World, promo and ratio settings are kept.
-- On the result screen, use **"Don't draw these again…"** to pick drawn objectives, pawns (and optionally the expansion) to leave out next time. Perfect for working through every objective over several games.
+- On the result screen, use **"Replace / exclude tiles…"** to select drawn objectives and pawns. **Replace** draws new ones right away, **Just exclude** only keeps them out of future draws (the expansion can only be excluded). Perfect for working through every objective over several games.
 - Changed your mind? **Reset all settings** on the first page re-enables every expansion, objective and pawn.
 
 Nothing is sent anywhere. It all stays in your browser's local storage.
