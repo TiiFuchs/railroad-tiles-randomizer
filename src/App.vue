@@ -17,7 +17,7 @@ const showToken = ref(false)
 const side = persistedRef<'front' | 'back'>('objectiveSide', 'back', (v): v is 'front' | 'back' => v === 'front' || v === 'back')
 const objImage = (o: Objective) => (side.value === 'back' ? o.backImage : o.image)
 
-const info = ref<{ name: string; image: string; text: string; aspect: string; color?: string } | null>(null)
+const info = ref<{ name: string; image: string; backImage?: string; text: string; aspect: string; color?: string } | null>(null)
 const rulebook = ref<{ title: string; url: string } | null>(null)
 const openRulebook = (id: string, title: string) => {
   const url = rulebookFor(id)
@@ -27,7 +27,7 @@ const openRulebook = (id: string, title: string) => {
 }
 const hasRules = (id: string) => !!RULES[id]
 const openInfo = (item: { id: string; name: string; image: string }, aspect: string, color?: string) => {
-  if (RULES[item.id]) info.value = { name: item.name, image: item.image, text: RULES[item.id]!, aspect, color }
+  if (RULES[item.id]) info.value = { name: item.name, image: item.image, backImage: (item as Partial<Objective>).backImage, text: RULES[item.id]!, aspect, color }
 }
 
 const disabledExpansions = persistedSet('disabledExpansions')
@@ -315,7 +315,7 @@ function restart() {
             <button class="plain" @click="toggle(disabledObjectives, o.id)">
               <Tile :name="o.name" :image="objImage(o)" aspect="1" :color="SOURCE_COLORS[o.source]" :disabled="disabledObjectives.has(o.id)" />
             </button>
-            <button v-if="hasRules(o.id)" class="info" aria-label="Show rules" @click="openInfo({ ...o, image: objImage(o) }, '1', SOURCE_COLORS[o.source])">i</button>
+            <button v-if="hasRules(o.id)" class="info" aria-label="Show rules" @click="openInfo(o, '1', SOURCE_COLORS[o.source])">i</button>
           </div>
         </div>
       </div>
@@ -369,7 +369,7 @@ function restart() {
       <div class="result-items">
         <div class="obj-list">
           <button v-for="o in result.objectives" :key="o.id" class="plain" :class="{ marking: excluding, clickable: !excluding && hasRules(o.id) }"
-            :disabled="!excluding && !hasRules(o.id)" @click="excluding ? toggle(marked, o.id) : openInfo({ ...o, image: objImage(o) }, '1', SOURCE_COLORS[o.source])">
+            :disabled="!excluding && !hasRules(o.id)" @click="excluding ? toggle(marked, o.id) : openInfo(o, '1', SOURCE_COLORS[o.source])">
             <Tile :name="o.name" :image="objImage(o)" aspect="1" :color="SOURCE_COLORS[o.source]" :selected="!excluding" :disabled="marked.has(o.id) && excluding"
               :tag="o.source === 'base' ? '' : o.source" :tag-color="SOURCE_COLORS[o.source]" />
             <span v-if="excluding" class="mark" :class="{ on: marked.has(o.id) }">{{ marked.has(o.id) ? '✕' : '' }}</span>
