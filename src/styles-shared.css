@@ -1,0 +1,40 @@
+/* Styles shared by the wizard pages (src/pages) */
+main { max-width: 1100px; margin: 0 auto; padding: 12px 16px 60px; display: grid; gap: 20px; }
+.panel { background: rgba(255,255,255,.7); border: 3px solid var(--navy); border-radius: 18px; padding: 16px 20px;
+  box-shadow: 0 5px 0 var(--brick-light); }
+.panel > h2 { margin: 0 0 12px; } .panel > h2 small { font-weight: 400; font-size: .75rem; opacity: .7; }
+.group > h3 { margin: 12px 0 8px; text-transform: capitalize; }
+.grid { display: grid; gap: 12px; }
+.plain { position: relative; background: none; border: 0; padding: 0; text-align: inherit; color: inherit; }
+.plain:hover .tile { transform: translateY(-3px); }
+.cell { position: relative; }
+.note { font-size: .85rem; opacity: .8; }
+.links { font-size: .75rem; font-weight: 400; margin-left: 8px; }
+.link { background: none; border: 0; color: var(--blue); text-decoration: underline; padding: 0; }
+.nav { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; gap: 12px; }
+.nav .big:only-child { margin-left: auto; }
+/* Navigation buttons stay at the bottom of the screen */
+.nav { position: sticky; bottom: 0; z-index: 10; margin: 16px -20px -16px; padding: 10px 20px 14px;
+  background: rgba(251, 248, 238, .96); border-top: 3px solid var(--navy); border-radius: 0 0 14px 14px; }
+.back { font-weight: 700; padding: 10px 22px; border-radius: 30px; border: 3px solid var(--navy); background: var(--cream); color: var(--navy); }
+.big { font-size: 1.5rem; font-weight: 800; padding: 14px 40px; border-radius: 40px; border: 3px solid var(--navy);
+  background: var(--orange); color: #fff; box-shadow: 0 6px 0 var(--navy); }
+.big:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--navy); }
+.pill { font-size: .85rem; padding: 6px 16px; border-width: 2px; box-shadow: 0 3px 0 var(--navy); }
+.reset { margin: 16px 0 0; text-align: center; font-size: .8rem; opacity: .85; }
+.side-toggle { display: inline-flex; border: 3px solid var(--navy); border-radius: 30px; overflow: hidden; margin: 0 0 12px; }
+.side-toggle button { border: 0; background: var(--cream); color: var(--navy); font-weight: 700; padding: 6px 18px; }
+.side-toggle button + button { border-left: 3px solid var(--navy); }
+.side-toggle button.on { background: var(--navy); color: #fff; }
+.side-toggle.result-toggle { display: flex; width: fit-content; margin: 0 auto 12px; }
+.info { position: absolute; top: 8px; left: 8px; z-index: 2; width: 31px; height: 31px; border-radius: 50%; border: 2px solid var(--navy);
+  background: #fff; color: var(--navy); font: italic 700 1.15rem Georgia, serif; line-height: 1; padding: 0; box-shadow: 0 2px 0 var(--navy); }
+.info.right { left: auto; right: 8px; }
+
+@media (max-width: 640px) {
+  /* Selection and result pages: edge-to-edge panels with a full-width expansion banner */
+  .panel.bleed { margin: 0 -16px; border-width: 3px 0; border-radius: 0; padding: 16px 12px; }
+  .bleed .nav { margin: 16px -12px -16px; padding: 10px 12px 14px; border-radius: 0; }
+  .nav .big { font-size: 1.25rem; padding: 10px 28px; }
+  .nav .back { padding: 8px 18px; }
+}

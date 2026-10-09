@@ -69,6 +69,7 @@ npm run build        # production build into dist/
 
 ### Customizing
 
+- **Code layout:** `src/game.ts` holds all state and logic (steps, settings, drawing, exclusions, routing); `src/pages/` has one component per wizard step; `src/styles-shared.css` the styles they share.
 - **Names, objectives, pawns:** edit `src/data.ts`.
 - **Expansion pill colors:** edit `SOURCE_COLORS` in `src/data.ts`.
 - **Tile sizes:** change `--size-expansion`, `--size-objective` and `--size-pawn` in `src/style.css`.

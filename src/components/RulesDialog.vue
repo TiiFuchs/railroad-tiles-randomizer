@@ -22,7 +22,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
       <div v-if="backImage" class="pair" :class="{ peek }" @pointerdown="peek = true" @pointerup="peek = false"
         @pointercancel="peek = false" @pointerleave="peek = false" @contextmenu.prevent>
         <div class="tile-wrap front"><Tile :name="name" :image="image" :aspect="aspect" :color="color" /></div>
-        <div class="tile-wrap back"><Tile :name="name + ' (back)'" :image="backImage" :aspect="aspect" :color="color" /></div>
+        <div class="tile-wrap rear"><Tile :name="name + ' (back)'" :image="backImage" :aspect="aspect" :color="color" /></div>
         <p class="hint">Touch and hold to see the back</p>
       </div>
       <div v-else class="tile-wrap"><Tile :name="name" :image="image" :aspect="aspect" :color="color" /></div>
@@ -45,14 +45,14 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 .tile-wrap { width: min(100%, 260px); margin: 8px auto 0; }
 .pair { display: grid; touch-action: manipulation; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
 .pair .tile-wrap { grid-area: 1 / 1; }
-.pair .back, .pair.peek .front { visibility: hidden; }
-.pair.peek .back { visibility: visible; }
+.pair .rear, .pair.peek .front { visibility: hidden; }
+.pair.peek .rear { visibility: visible; }
 .hint { grid-area: 2 / 1; margin: 8px 0 0; text-align: center; font-size: .8rem; opacity: .7; color: var(--navy); }
 @media (min-width: 900px) and (hover: hover) and (pointer: fine) {
   .dialog:has(.pair) { width: min(640px, 100%); }
   .pair { grid-template-columns: 1fr 1fr; gap: 16px; }
   .pair .tile-wrap { grid-area: auto; width: 100%; }
-  .pair .back { visibility: visible; }
+  .pair .rear { visibility: visible; }
   .pair.peek .front { visibility: visible; }
   .hint { display: none; }
 }

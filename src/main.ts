@@ -3,6 +3,7 @@ import App from './App.vue'
 import '@fontsource/limelight'
 import '@fontsource/josefin-sans/700.css'
 import './style.css'
+import './styles-shared.css'
 
 createApp(App).mount('#app')
 
