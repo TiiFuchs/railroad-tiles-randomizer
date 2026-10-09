@@ -339,9 +339,9 @@ function restart() {
         <div class="grid pawn">
           <div v-for="p in g.pawns" :key="p.id" class="cell">
             <button class="plain" @click="toggle(disabledPawns, p.id)">
-              <Tile :name="p.name" :image="p.image" aspect="17/9" :disabled="disabledPawns.has(p.id)" />
+              <Tile :name="p.name" :image="p.image" aspect="4/3" :disabled="disabledPawns.has(p.id)" />
             </button>
-            <button v-if="hasRules(p.id)" class="info" aria-label="Show rules" @click="openInfo(p, '17/9')">i</button>
+            <button v-if="hasRules(p.id)" class="info" aria-label="Show rules" @click="openInfo(p, '4/3')">i</button>
           </div>
         </div>
       </div>
@@ -379,8 +379,8 @@ function restart() {
           <div v-for="(p, type) in result.pawns" :key="type" class="pawn-item">
             <h3>{{ type }}</h3>
             <button class="plain" :class="{ marking: excluding, clickable: !excluding && hasRules(p.id) }" :disabled="!excluding && !hasRules(p.id)"
-              @click="excluding ? toggle(marked, p.id) : openInfo(p, '17/9')">
-              <Tile :name="p.name" :image="p.image" aspect="17/9" :selected="!excluding" :disabled="marked.has(p.id) && excluding" />
+              @click="excluding ? toggle(marked, p.id) : openInfo(p, '4/3')">
+              <Tile :name="p.name" :image="p.image" aspect="4/3" :selected="!excluding" :disabled="marked.has(p.id) && excluding" />
               <span v-if="excluding" class="mark" :class="{ on: marked.has(p.id) }">{{ marked.has(p.id) ? '✕' : '' }}</span>
             </button>
           </div>
