@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { imageUrl } from '../imageUrl'
 const props = defineProps<{ name: string; image: string; selected?: boolean; disabled?: boolean; aspect?: string; tag?: string; tagColor?: string; color?: string }>()
 
 // Dark text on light pill colors for readability
@@ -15,7 +16,7 @@ watch(() => props.image, () => (failed.value = false))
 <template>
   <div class="tile" :class="{ selected, disabled }">
     <div class="media" :style="{ aspectRatio: aspect ?? '1' }">
-      <img v-if="!failed" :src="image" :alt="name" @error="failed = true" />
+      <img v-if="!failed" :src="imageUrl(image)" :alt="name" loading="lazy" decoding="async" @error="failed = true" />
       <div v-else class="placeholder"><span class="rails"></span></div>
     </div>
     <span class="label" :style="color ? { background: color, color: textOn(color) } : undefined">{{ name }}</span>

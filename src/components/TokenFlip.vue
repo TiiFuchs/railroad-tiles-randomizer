@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useScrollLock } from '../scrollLock'
+import { imageUrl } from '../imageUrl'
 
 const emit = defineEmits<{ close: [] }>()
 useScrollLock()
@@ -57,7 +58,7 @@ onUnmounted(() => {
         <div class="lift" :class="{ spinning: flipping }">
           <div class="coin" :style="{ transform: `rotateY(${rotation}deg)` }">
             <div v-for="(side, key) in SIDES" :key="key" class="face" :class="key">
-              <img v-if="!failed[key]" :src="side.image" :alt="side.label" @error="failed[key] = true" />
+              <img v-if="!failed[key]" :src="imageUrl(side.image)" decoding="async" :alt="side.label" @error="failed[key] = true" />
               <span v-else class="fallback">{{ side.label }}</span>
             </div>
           </div>

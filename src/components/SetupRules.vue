@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { SETUP_RULES, parseBold, setupImage } from '../setup-rules'
+import { imageUrl } from '../imageUrl'
 
 const props = defineProps<{ expansionId: string; expansionName: string }>()
 const steps = computed(() => (SETUP_RULES[props.expansionId] ?? []).map(parseBold))
@@ -20,7 +21,7 @@ watch(() => props.expansionId, () => (imageFailed.value = false))
           </template>
         </li>
       </ol>
-      <img v-if="!imageFailed" :src="setupImage(expansionId)" :alt="`${expansionName} setup`" @error="imageFailed = true" />
+      <img v-if="!imageFailed" :src="imageUrl(setupImage(expansionId))" loading="lazy" decoding="async" :alt="`${expansionName} setup`" @error="imageFailed = true" />
     </div>
   </div>
 </template>

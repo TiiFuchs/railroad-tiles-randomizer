@@ -1,5 +1,5 @@
-// Post-build step: shrinks the images copied into dist/images. Originals in public/images stay untouched.
-import { readdir, readFile, writeFile } from 'node:fs/promises'
+// Post-build step: shrinks the images copied into dist/images and converts them to WebP (the app requests .webp in production, see src/imageUrl.ts). Originals in public/images stay untouched.
+import { readdir, readFile, writeFile, rm } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { join, extname } from 'node:path'
 import sharp from 'sharp'
@@ -20,13 +20,12 @@ for (const [folder, width] of Object.entries(WIDTHS)) {
     const input = await readFile(path)
     const output = await sharp(input)
       .resize({ width, withoutEnlargement: true })
-      .png({ compressionLevel: 9, palette: true, quality: 90 })
+      .webp({ quality: 82, alphaQuality: 90, effort: 6 })
       .toBuffer()
     before += input.length
-    // Never make a file bigger than the original
-    const smaller = output.length < input.length ? output : input
-    after += smaller.length
-    await writeFile(path, smaller)
+    after += output.length
+    await writeFile(path.replace(/\.png$/i, '.webp'), output)
+    await rm(path)
   }
 }
 
