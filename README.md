@@ -38,7 +38,7 @@ At the top, choose the **ratio** of objectives: *expansion : other*. Every combi
 If you play with World, pick which **traveler, train and car** pawns are in the pool. Each type has quick *all / none* links. If you don't use World, this step is skipped.
 
 ### 4. 🎲 Your game
-You get your expansion, three objectives and, with World, one pawn of each type. Don't like it? **Re-roll** or **Start over**.
+You get your expansion, three objectives and, with World, one pawn of each type. Don't like it? **Re-roll** (new expansion and tiles) or **Start over**.
 
 ### 🪙 Two-player token
 Playing with two? Use the **Two-player token** button on the start or result page. Tap the token and it flips in 3D, telling you which leftover column to remove.

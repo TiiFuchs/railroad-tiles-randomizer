@@ -448,7 +448,7 @@ function restart() {
       <SetupRules v-if="expansion" :expansion-id="expansion.id" :expansion-name="expansion.name" />
       <div class="nav">
         <button class="back" @click="restart">↺ Start over</button>
-        <button class="big" @click="showResult">🎲 Re-roll</button>
+        <button class="big" @click="quickPlay">🎲 Re-roll</button>
       </div>
       <p class="reset">
         <button class="back pill" @click="showToken = true">🪙 Two-player token</button>
