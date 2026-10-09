@@ -2,7 +2,7 @@
 export type Source = 'base' | 'world' | 'promo' | string
 
 export interface Expansion { id: string; name: string; image: string }
-export interface Objective { id: string; name: string; source: Source; image: string }
+export interface Objective { id: string; name: string; source: Source; image: string; backImage: string }
 export interface Pawn { id: string; name: string; image: string }
 
 const byName = <T extends { name: string }>(items: T[]) => [...items].sort((a, b) => a.name.localeCompare(b.name))
@@ -35,6 +35,7 @@ const make = (source: Source, names: string[]): Objective[] =>
     name,
     source,
     image: `images/objectives/${source}-${slug(name)}.png`,
+    backImage: `images/objectives/${source}-${slug(name)}-back.png`,
   })))
 
 export const OBJECTIVES: Objective[] = [

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-defineProps<{ name: string; image: string; selected?: boolean; disabled?: boolean; aspect?: string; tag?: string; tagColor?: string; color?: string }>()
+import { ref, watch } from 'vue'
+const props = defineProps<{ name: string; image: string; selected?: boolean; disabled?: boolean; aspect?: string; tag?: string; tagColor?: string; color?: string }>()
 
 // Dark text on light pill colors for readability
 const textOn = (hex?: string) => {
@@ -9,6 +9,7 @@ const textOn = (hex?: string) => {
   return 0.299 * r! + 0.587 * g! + 0.114 * b! > 160 ? 'var(--navy)' : '#fff'
 }
 const failed = ref(false)
+watch(() => props.image, () => (failed.value = false))
 </script>
 
 <template>

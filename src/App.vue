@@ -14,6 +14,8 @@ import { OBJECTIVE_COUNT, drawObjectives, pick, type Ratio } from './randomizer'
 type Step = 'expansions' | 'objectives' | 'pawns' | 'result'
 const step = ref<Step>('expansions')
 const showToken = ref(false)
+const side = persistedRef<'front' | 'back'>('objectiveSide', 'back', (v): v is 'front' | 'back' => v === 'front' || v === 'back')
+const objImage = (o: Objective) => (side.value === 'back' ? o.backImage : o.image)
 
 const info = ref<{ name: string; image: string; text: string; aspect: string; color?: string } | null>(null)
 const rulebook = ref<{ title: string; url: string } | null>(null)
@@ -296,6 +298,10 @@ function restart() {
         </div>
       </div>
       <h2>Objectives <small>(click to disable)</small></h2>
+      <div class="side-toggle" role="group" aria-label="Objective side">
+        <button :class="{ on: side === 'back' }" @click="side = 'back'">Back</button>
+        <button :class="{ on: side === 'front' }" @click="side = 'front'">Front</button>
+      </div>
       <div v-for="s in poolSources" :key="s.id" class="group">
         <h3>
           {{ s.name }}
@@ -307,9 +313,9 @@ function restart() {
         <div class="grid obj">
           <div v-for="o in objectivesOf(s.id)" :key="o.id" class="cell">
             <button class="plain" @click="toggle(disabledObjectives, o.id)">
-              <Tile :name="o.name" :image="o.image" aspect="1" :color="SOURCE_COLORS[o.source]" :disabled="disabledObjectives.has(o.id)" />
+              <Tile :name="o.name" :image="objImage(o)" aspect="1" :color="SOURCE_COLORS[o.source]" :disabled="disabledObjectives.has(o.id)" />
             </button>
-            <button v-if="hasRules(o.id)" class="info" aria-label="Show rules" @click="openInfo(o, '1', SOURCE_COLORS[o.source])">i</button>
+            <button v-if="hasRules(o.id)" class="info" aria-label="Show rules" @click="openInfo({ ...o, image: objImage(o) }, '1', SOURCE_COLORS[o.source])">i</button>
           </div>
         </div>
       </div>
@@ -356,11 +362,15 @@ function restart() {
         </button>
       </div>
       <p v-else class="note">No expansion enabled — playing the base game.</p>
+      <div class="side-toggle result-toggle" role="group" aria-label="Objective side">
+        <button :class="{ on: side === 'back' }" @click="side = 'back'">Back</button>
+        <button :class="{ on: side === 'front' }" @click="side = 'front'">Front</button>
+      </div>
       <div class="result-items">
         <div class="obj-list">
           <button v-for="o in result.objectives" :key="o.id" class="plain" :class="{ marking: excluding, clickable: !excluding && hasRules(o.id) }"
-            :disabled="!excluding && !hasRules(o.id)" @click="excluding ? toggle(marked, o.id) : openInfo(o, '1', SOURCE_COLORS[o.source])">
-            <Tile :name="o.name" :image="o.image" aspect="1" :color="SOURCE_COLORS[o.source]" :selected="!excluding" :disabled="marked.has(o.id) && excluding"
+            :disabled="!excluding && !hasRules(o.id)" @click="excluding ? toggle(marked, o.id) : openInfo({ ...o, image: objImage(o) }, '1', SOURCE_COLORS[o.source])">
+            <Tile :name="o.name" :image="objImage(o)" aspect="1" :color="SOURCE_COLORS[o.source]" :selected="!excluding" :disabled="marked.has(o.id) && excluding"
               :tag="o.source === 'base' ? '' : o.source" :tag-color="SOURCE_COLORS[o.source]" />
             <span v-if="excluding" class="mark" :class="{ on: marked.has(o.id) }">{{ marked.has(o.id) ? '✕' : '' }}</span>
           </button>
@@ -458,6 +468,11 @@ h3 { margin: 12px 0 8px; text-transform: capitalize; }
 .done { color: var(--navy); font-weight: 700; }
 .plain { position: relative; }
 .cell { position: relative; }
+.side-toggle { display: inline-flex; border: 3px solid var(--navy); border-radius: 30px; overflow: hidden; margin: 0 0 12px; }
+.side-toggle button { border: 0; background: var(--cream); color: var(--navy); font-weight: 700; padding: 6px 18px; }
+.side-toggle button + button { border-left: 3px solid var(--navy); }
+.side-toggle button.on { background: var(--navy); color: #fff; }
+.result-toggle { display: flex; width: fit-content; margin: 0 auto 12px; }
 .info { position: absolute; top: 8px; left: 8px; z-index: 2; width: 31px; height: 31px; border-radius: 50%; border: 2px solid var(--navy);
   background: #fff; color: var(--navy); font: italic 700 1.15rem Georgia, serif; line-height: 1; padding: 0; box-shadow: 0 2px 0 var(--navy); }
 .info.right { left: auto; right: 8px; }

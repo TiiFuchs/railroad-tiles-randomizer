@@ -81,6 +81,7 @@ npm run build        # production build into dist/
 |--------|-----------|--------|
 | `expansions/` | `<id>.png`, e.g. `desert.png`, `world.png`, `promo.png` | 2:1 landscape (e.g. 800×400) |
 | `objectives/` | `<source>-<name>.png`, e.g. `base-city-hall.png`, `canals-doges-tower.png` | square |
+| `objectives/` | `<source>-<name>-back.png`, e.g. `base-city-hall-back.png` (the unique back of each objective; same square format) | square |
 | `pawns/` | `<type>-<name>.png`, e.g. `car-tow-truck.png`, `traveler-police-officer.png` | 17:9 landscape (e.g. 680×360) |
 | `token/` | `left.png`, `right.png` (the two sides of the two-player token) | same ratio as `--token-aspect` in `src/style.css` |
 | `setup/` | `<expansion-id>.png`, e.g. `desert.png` | any ratio, about 720 px wide |
