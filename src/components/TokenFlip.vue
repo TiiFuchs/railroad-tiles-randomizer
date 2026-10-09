@@ -23,13 +23,14 @@ function flip() {
   const target: Side = Math.random() < 0.5 ? 'left' : 'right'
   const wanted = target === 'left' ? 0 : 180
   const delta = (((wanted - rotation.value) % 360) + 360) % 360
-  rotation.value += 1080 + delta
+  const calm = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+  rotation.value += (calm ? 0 : 1080) + delta
   result.value = null
   flipping.value = true
   timer = setTimeout(() => {
     flipping.value = false
     result.value = target
-  }, 1400)
+  }, calm ? 250 : 1400)
 }
 
 const onKey = (e: KeyboardEvent) => {
@@ -94,6 +95,10 @@ h2 { margin: 0 0 4px; }
 .face.left { transform: rotateY(0deg); }
 .face img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .fallback { font-family: 'Limelight', Georgia, serif; font-size: 2rem; color: var(--navy); text-transform: uppercase; }
+@media (prefers-reduced-motion: reduce) {
+  .coin { transition: none; }
+  .lift.spinning { animation: none; }
+}
 .outcome { margin: 22px 0 0; min-height: 1.6em; font-size: 1.15rem; color: var(--navy); }
 .outcome.shown { font-size: 1.4rem; }
 .outcome strong { color: var(--orange); text-transform: uppercase; }
